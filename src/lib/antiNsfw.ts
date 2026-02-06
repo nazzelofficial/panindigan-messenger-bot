@@ -30,12 +30,21 @@ export class AntiNsfw {
     
     this.isModelLoading = true;
     try {
-      // Load the model from default URL (hosted on GitHub)
-      // or specify a local path: 'file://./path/to/model/'
-      this.model = await nsfwjs.load();
-      BotLogger.success('NSFW Detection Model loaded successfully');
+      // Load the model from local file to save bandwidth and memory buffering
+      // Note: 'file://' scheme requires absolute path or relative from cwd
+      // In production/dist, models should be copied or path adjusted
+      const modelPath = 'file://./src/models/nsfwjs/model.json';
+      this.model = await nsfwjs.load(modelPath);
+      BotLogger.success('NSFW Detection Model loaded successfully from local');
     } catch (error) {
-      BotLogger.error('Failed to load NSFW Detection Model', error);
+      BotLogger.error('Failed to load NSFW Detection Model (Local)', error);
+      // Fallback to default if local fails (though local should exist)
+      try {
+          this.model = await nsfwjs.load();
+          BotLogger.success('NSFW Detection Model loaded from CDN (Fallback)');
+      } catch (e) {
+          BotLogger.error('Failed to load NSFW Detection Model (CDN)', e);
+      }
     } finally {
       this.isModelLoading = false;
     }
