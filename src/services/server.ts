@@ -1,4 +1,5 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
+import path from 'path';
 import { BotLogger, logger } from '../lib/logger.js';
 import { database } from '../database/index.js';
 import { commandHandler } from '../lib/commandHandler.js';
@@ -9,6 +10,9 @@ import config from '../../config.json' with { type: 'json' };
 export function createServer(): Express {
   const app = express();
   
+  // Serve models directory statically to avoid file:// protocol issues with nsfwjs
+  app.use('/models', express.static(path.join(process.cwd(), 'src/models')));
+
   app.use(express.json());
   
   const requestCounts = new Map<string, { count: number; resetTime: number }>();

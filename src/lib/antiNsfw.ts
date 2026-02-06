@@ -1,8 +1,20 @@
 import { database } from '../database/index.js';
 import { BotLogger } from './logger.js';
+import config from '../../config.json' with { type: 'json' };
 import * as tf from '@tensorflow/tfjs';
 import { createRequire } from 'module';
+import path from 'path';
+
 const require = createRequire(import.meta.url);
+
+// Try to import tfjs-node for native performance and file system support
+try {
+    require('@tensorflow/tfjs-node');
+    BotLogger.info('TensorFlow.js Node backend loaded successfully');
+} catch (e) {
+    BotLogger.warn('TensorFlow.js Node backend not found. Using vanilla JS backend (slower, higher memory usage).');
+}
+
 const nsfwjs = require('nsfwjs');
 import type { NSFWJS } from 'nsfwjs';
 import axios from 'axios';
@@ -22,28 +34,34 @@ export class AntiNsfw {
   private isModelLoading = false;
 
   constructor() {
-    this.loadModel();
+    // Model loading deferred to init() to ensure server is running
+  }
+
+  async init() {
+    await this.loadModel();
   }
 
   private async loadModel() {
     if (this.model || this.isModelLoading) return;
-    
+
     this.isModelLoading = true;
     try {
-      // Load the model from local file to save bandwidth and memory buffering
-      // Note: 'file://' scheme requires absolute path or relative from cwd
-      // In production/dist, models should be copied or path adjusted
-      const modelPath = 'file://./src/models/nsfwjs/model.json';
-      this.model = await nsfwjs.load(modelPath);
-      BotLogger.success('NSFW Detection Model loaded successfully from local');
+      // Load the model from local server (exposed via express static)
+      // This avoids file:// protocol issues in Node.js environment
+      const port = config.server.port || 5000;
+      const modelUrl = `http://localhost:${port}/models/nsfwjs/model.json`;
+      
+      BotLogger.info(`Loading NSFW model from ${modelUrl}...`);
+      this.model = await nsfwjs.load(modelUrl);
+      BotLogger.success('NSFW Detection Model loaded successfully from local server');
     } catch (error) {
-      BotLogger.error('Failed to load NSFW Detection Model (Local)', error);
-      // Fallback to default if local fails (though local should exist)
+      BotLogger.error('Failed to load NSFW Detection Model (Local Server)', error);
+      // Fallback to default if local fails
       try {
-          this.model = await nsfwjs.load();
-          BotLogger.success('NSFW Detection Model loaded from CDN (Fallback)');
+        this.model = await nsfwjs.load();
+        BotLogger.success('NSFW Detection Model loaded from CDN (Fallback)');
       } catch (e) {
-          BotLogger.error('Failed to load NSFW Detection Model (CDN)', e);
+        BotLogger.error('Failed to load NSFW Detection Model (CDN)', e);
       }
     } finally {
       this.isModelLoading = false;

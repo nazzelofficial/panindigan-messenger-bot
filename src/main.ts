@@ -174,6 +174,9 @@ async function main(): Promise<void> {
   console.log(`  [SERVER]          Express running on port ${config.server.port}`);
   console.log(`  [DASHBOARD]       http://0.0.0.0:${config.server.port}`);
   
+  // Initialize Anti-NSFW model after server is running
+  await antiNsfw.init();
+  
   let appState: any = null;
   let appStateSource = '';
   
