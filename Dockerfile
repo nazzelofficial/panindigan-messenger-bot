@@ -5,7 +5,7 @@
 FROM node:20-alpine AS builder
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.24.0 --activate
+RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 
 # Install build dependencies for native modules
 RUN apk add --no-cache python3 make g++ ffmpeg
@@ -66,4 +66,4 @@ ENV NODE_ENV=production
 ENV PORT=5000
 
 # Start the application
-CMD ["node", "dist/main.js"]
+CMD ["node", "--max-old-space-size=4096", "dist/main.js"]
