@@ -1,7 +1,10 @@
 import { database } from '../database/index.js';
 import { BotLogger } from './logger.js';
 import * as tf from '@tensorflow/tfjs';
-import * as nsfwjs from 'nsfwjs';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const nsfwjs = require('nsfwjs');
+import type { NSFWJS } from 'nsfwjs';
 import axios from 'axios';
 import { Jimp } from 'jimp';
 
@@ -15,7 +18,7 @@ export interface NsfwDetectionResult {
 
 export class AntiNsfw {
   private settingKey = 'antinsfw';
-  private model: nsfwjs.NSFWJS | null = null;
+  private model: NSFWJS | null = null;
   private isModelLoading = false;
 
   constructor() {
