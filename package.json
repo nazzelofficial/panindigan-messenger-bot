@@ -9,7 +9,6 @@
     "start": "tsx src/main.ts",
     "dev": "tsx watch src/main.ts",
     "build": "tsc",
-    "postinstall": "node scripts/patch-nsfwjs-buffer.mjs",
     "lint": "eslint src/",
     "format": "prettier --write src/"
   },
