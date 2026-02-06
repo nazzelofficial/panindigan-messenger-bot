@@ -33,8 +33,12 @@ export async function initDatabase(): Promise<boolean> {
     
     logger.info('PostgreSQL connected successfully');
     return true;
-  } catch (error) {
-    logger.error('Failed to connect to PostgreSQL', { error });
+  } catch (error: any) {
+    if (error.code === 'ECONNREFUSED') {
+      logger.warn('PostgreSQL connection refused. Database features will be disabled. (Is the database running?)');
+    } else {
+      logger.error('Failed to connect to PostgreSQL', { error });
+    }
     isConnected = false;
     return false;
   }
