@@ -1,0 +1,73 @@
+import type { Command, CommandContext } from '../../types/index.js';
+import { BotLogger } from '../../lib/logger.js';
+import { antiNsfw } from '../../lib/antiNsfw.js';
+import { decorations } from '../../lib/messageFormatter.js';
+
+const command: Command = {
+  name: 'antinsfw',
+  aliases: ['antiporn', 'no18+', 'antirestricted'],
+  description: 'Toggle anti-NSFW protection (auto-deletes 18+ images/videos)',
+  category: 'admin',
+  usage: 'antinsfw <on|off>',
+  examples: ['antinsfw on', 'antinsfw off'],
+  adminOnly: true,
+  cooldown: 5000,
+
+  async execute(context: CommandContext): Promise<void> {
+    const { event, args, reply, prefix } = context;
+    
+    const option = args[0]?.toLowerCase();
+    const isEnabled = await antiNsfw.isEnabled(event.threadID);
+    
+    if (!option || !['on', 'off'].includes(option)) {
+      await reply(`🔞 『 ANTI-NSFW 』 🔞
+═══════════════════════════
+${decorations.fire} 18+ Content Protection
+═══════════════════════════
+
+◈ CURRENT STATUS
+═══════════════════════════
+➤ Anti-NSFW: ${isEnabled ? '🟢 ON' : '🔴 OFF'}
+
+◈ USAGE
+═══════════════════════════
+➤ ${prefix}antinsfw on
+➤ ${prefix}antinsfw off
+
+◈ FEATURES
+═══════════════════════════
+• Detects 18+ content (Basic)
+• Auto-deletes NSFW images/videos
+• Warns users sending restricted content
+• Keeps the group clean`);
+      return;
+    }
+    
+    const enable = option === 'on';
+    
+    try {
+      await antiNsfw.setEnabled(event.threadID, enable);
+      
+      BotLogger.info(`Anti-NSFW ${enable ? 'enabled' : 'disabled'} for group ${event.threadID}`);
+      
+      await reply(`🔞 『 ANTI-NSFW ${enable ? 'ENABLED' : 'DISABLED'} 』 🔞
+═══════════════════════════
+${decorations.fire} Setting Updated
+═══════════════════════════
+
+◈ STATUS
+═══════════════════════════
+➤ Anti-NSFW: ${enable ? '🟢 ON' : '🔴 OFF'}
+
+═══════════════════════════
+${enable ? '✅ 18+ content protection is now active' : '⚠️ 18+ content protection is now disabled'}`);
+    } catch (err) {
+      BotLogger.error('Failed to toggle anti-nsfw', err);
+      await reply(`${decorations.fire} 『 ERROR 』
+═══════════════════════════
+❌ Failed to update setting`);
+    }
+  }
+};
+
+export default command;

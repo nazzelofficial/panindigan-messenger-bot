@@ -1,0 +1,74 @@
+{
+  "name": "nazzel-messenger-userbot",
+  "version": "2.12.1",
+  "description": "Advanced Facebook Messenger User-Bot with TypeScript, PostgreSQL, and comprehensive logging",
+  "main": "dist/main.js",
+  "type": "module",
+  "packageManager": "pnpm@10.28.2",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc",
+    "postinstall": "node scripts/patch-nsfwjs-buffer.mjs",
+    "lint": "eslint src/",
+    "format": "prettier --write src/"
+  },
+  "pnpm": {
+    "overrides": {
+      "buffer": "6.0.3",
+      "tough-cookie": "^5.1.2"
+    },
+    "onlyBuiltDependencies": [
+      "sqlite3",
+      "@ffmpeg-installer/linux-x64",
+      "esbuild"
+    ]
+  },
+  "keywords": [
+    "messenger",
+    "userbot",
+    "facebook",
+    "typescript",
+    "chatbot",
+    "postgresql"
+  ],
+  "author": "Nazzel",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "dependencies": {
+    "@distube/ytdl-core": "^4.16.12",
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@spotify/web-api-ts-sdk": "^1.2.0",
+    "@tensorflow/tfjs": "^4.22.0",
+    "archiver": "^7.0.1",
+    "axios": "^1.13.4",
+    "chalk": "^5.6.2",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "file-type": "^21.1.1",
+    "fluent-ffmpeg": "^2.1.3",
+    "ioredis": "^5.8.2",
+    "jimp": "^1.6.0",
+    "node-cache": "^5.1.2",
+    "node-fetch": "^3.3.2",
+    "nsfwjs": "^4.2.1",
+    "openai": "^6.10.0",
+    "pg": "^8.18.0",
+    "unzipper": "^0.12.3",
+    "uuid": "^11.1.0",
+    "winston": "^3.18.0",
+    "ws3-fca": "^3.5.2",
+    "yt-search": "^2.13.1",
+    "ytdl-core": "^4.11.5"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.15.21",
+    "@types/pg": "^8.16.0",
+    "@types/uuid": "^10.0.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

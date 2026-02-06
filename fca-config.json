@@ -1,0 +1,25 @@
+{
+  "autoUpdate": false,
+  "mqtt": {
+    "enabled": true,
+    "reconnectInterval": 3600
+  },
+  "autoLogin": true,
+  "logging": {
+    "enabled": false
+  },
+  "database": {
+    "enabled": false,
+    "type": "none",
+    "path": null,
+    "backup": false
+  },
+  "backup": {
+    "enabled": false,
+    "autoSave": false
+  },
+  "selfListen": true,
+  "listenEvents": true,
+  "sequelize": false,
+  "sqlite": false
+}
