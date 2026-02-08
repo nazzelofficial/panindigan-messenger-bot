@@ -2,7 +2,7 @@
 # Multi-stage build for optimized production image
 
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:23-alpine AS builder
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
@@ -25,7 +25,7 @@ COPY . .
 RUN pnpm run build
 
 # Production stage
-FROM node:20-alpine AS production
+FROM node:23-alpine AS production
 
 # Install pnpm and runtime dependencies
 RUN corepack enable && corepack prepare pnpm@10.24.0 --activate

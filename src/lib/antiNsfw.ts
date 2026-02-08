@@ -149,16 +149,19 @@ export class AntiNsfw {
           const hentai = predictions.find(p => p.className === 'Hentai');
           const sexy = predictions.find(p => p.className === 'Sexy');
 
-          // Thresholds
-          if (porn && porn.probability > 0.60) {
-            return { detected: true, type: 'image', severity: 'high', confidence: porn.probability, class: 'Porn' };
-          }
-          if (hentai && hentai.probability > 0.60) {
-            return { detected: true, type: 'image', severity: 'high', confidence: hentai.probability, class: 'Hentai' };
-          }
-          // Sexy is usually less severe (e.g. swimwear), maybe warn only or ignore if low confidence
-          if (sexy && sexy.probability > 0.85) {
-             return { detected: true, type: 'image', severity: 'low', confidence: sexy.probability, class: 'Sexy' };
+          if (
+            (porn && porn.probability > 0.45) || 
+            (hentai && hentai.probability > 0.45) ||
+            (sexy && sexy.probability > 0.75)
+          ) {
+            const highest = [porn, hentai, sexy].sort((a, b) => (b?.probability || 0) - (a?.probability || 0))[0];
+            return { 
+              detected: true, 
+              type: 'image', 
+              severity: 'high', 
+              confidence: highest?.probability || 0,
+              class: highest?.className || 'Restricted'
+            };
           }
 
         } catch (err) {
