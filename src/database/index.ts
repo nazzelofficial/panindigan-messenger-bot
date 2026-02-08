@@ -19,9 +19,13 @@ export async function initDatabase(): Promise<boolean> {
   }
 
   try {
+    const isLocal = connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
+    
     pool = new Pool({
       connectionString,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+      // Force SSL for remote connections (Koyeb, Neon, Supabase, etc.) even in dev
+      // Disable SSL for local connections to avoid "SSL off" errors
+      ssl: isLocal ? undefined : { rejectUnauthorized: false },
       connectionTimeoutMillis: 5000, // 5s timeout
     });
 
