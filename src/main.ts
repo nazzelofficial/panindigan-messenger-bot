@@ -230,6 +230,7 @@ async function main(): Promise<void> {
     forceLogin: true,
     online: true,
     autoReconnect: true,
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
   };
   
   if (!appState || !appState.cookies || appState.cookies.length === 0) {
