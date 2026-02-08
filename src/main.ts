@@ -180,6 +180,20 @@ async function main(): Promise<void> {
   let appState: any = null;
   let appStateSource = '';
   
+  // Check for APP_STATE environment variable (Koyeb/PaaS support)
+  if (!fs.existsSync(APPSTATE_FILE) && process.env.APP_STATE) {
+    try {
+      console.log('  [APPSTATE]        Found APP_STATE environment variable');
+      const envAppState = process.env.APP_STATE.trim();
+      // Validate JSON before writing
+      JSON.parse(envAppState);
+      fs.writeFileSync(APPSTATE_FILE, envAppState);
+      console.log('  [APPSTATE]        Created appstate.json from environment variable');
+    } catch (error) {
+      console.log('  [APPSTATE]        Error parsing/writing APP_STATE env var', error);
+    }
+  }
+
   if (fs.existsSync(APPSTATE_FILE)) {
     try {
       const fileContent = fs.readFileSync(APPSTATE_FILE, 'utf8');
