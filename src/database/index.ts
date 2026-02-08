@@ -10,17 +10,19 @@ let isConnected = false;
 const cache = new NodeCache({ stdTTL: 60, checkperiod: 120 });
 
 export async function initDatabase(): Promise<boolean> {
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
   
   if (!connectionString) {
-    logger.warn('DATABASE_URL not found. Database features will be disabled.');
+    logger.warn('DATABASE_URL or POSTGRES_URL not found. Database features will be disabled.');
+    logger.info('Please set DATABASE_URL in your environment variables.');
     return false;
   }
 
   try {
     pool = new Pool({
       connectionString,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+      connectionTimeoutMillis: 5000, // 5s timeout
     });
 
     // Test connection

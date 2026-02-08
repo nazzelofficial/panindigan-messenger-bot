@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Database Connection** - Improved connection logic to support both `DATABASE_URL` and `POSTGRES_URL`, with detailed logging for connection failures to help debugging.
 - **Anti-NSFW Persistence** - Fixed an issue where the Anti-NSFW setting would reset to "OFF" after a bot restart due to data type mismatch (Boolean vs String) in PostgreSQL.
 - **Thread Persistence** - Fixed an issue where threads were not being saved to the database upon message receipt, causing empty threads table.
 - **Redis Removed** - Completely removed Redis dependency. All caching, rate limiting, and cooldowns are now handled natively by PostgreSQL (`settings` table with expiry) and in-memory fallback.
