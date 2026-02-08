@@ -7,14 +7,6 @@ import path from 'path';
 
 const require = createRequire(import.meta.url);
 
-// Try to import tfjs-node for native performance and file system support
-try {
-    require('@tensorflow/tfjs-node');
-    BotLogger.info('TensorFlow.js Node backend loaded successfully');
-} catch (e) {
-    BotLogger.warn('TensorFlow.js Node backend not found. Using vanilla JS backend (slower, higher memory usage).');
-}
-
 const nsfwjs = require('nsfwjs');
 import type { NSFWJS } from 'nsfwjs';
 import axios from 'axios';
@@ -32,6 +24,7 @@ export class AntiNsfw {
   private settingKey = 'antinsfw';
   private model: NSFWJS | null = null;
   private isModelLoading = false;
+  private isProcessing = false; // Mutex for processing
 
   constructor() {
     // Model loading deferred to init() to ensure server is running
@@ -137,9 +130,18 @@ export class AntiNsfw {
           // Decode image
           const image = await this.decodeImageTo3D(imageBuffer);
           
-          // Predict
-          const predictions = await this.model.classify(image);
-          image.dispose(); // Cleanup tensor memory
+          // Predict (Serialized to prevent OOM)
+          while (this.isProcessing) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+          this.isProcessing = true;
+          let predictions;
+          try {
+            predictions = await this.model.classify(image);
+          } finally {
+            this.isProcessing = false;
+            image.dispose(); // Cleanup tensor memory immediately
+          }
 
           // Check predictions
           // Classes: Porn, Hentai, Sexy, Neutral, Drawing
@@ -179,8 +181,19 @@ export class AntiNsfw {
               const imageBuffer = await this.downloadImage(thumbnailUrl);
               if (imageBuffer) {
                 const image = await this.decodeImageTo3D(imageBuffer);
-                const predictions = await this.model.classify(image);
-                image.dispose();
+                
+                // Serialized prediction
+                while (this.isProcessing) {
+                  await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                this.isProcessing = true;
+                let predictions;
+                try {
+                  predictions = await this.model.classify(image);
+                } finally {
+                  this.isProcessing = false;
+                  image.dispose();
+                }
 
                 const porn = predictions.find(p => p.className === 'Porn');
                 const hentai = predictions.find(p => p.className === 'Hentai');
