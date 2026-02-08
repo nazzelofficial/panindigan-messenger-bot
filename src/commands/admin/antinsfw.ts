@@ -8,8 +8,8 @@ const command: Command = {
   aliases: ['antiporn', 'no18+', 'antirestricted'],
   description: 'Toggle anti-NSFW protection (auto-deletes 18+ images/videos)',
   category: 'admin',
-  usage: 'antinsfw <on|off>',
-  examples: ['antinsfw on', 'antinsfw off'],
+  usage: 'antinsfw <on|off|check>',
+  examples: ['antinsfw on', 'antinsfw off', 'antinsfw check'],
   adminOnly: true,
   cooldown: 5000,
 
@@ -27,18 +27,20 @@ ${decorations.fire} 18+ Content Protection
 
 ◈ CURRENT STATUS
 ═══════════════════════════
-➤ Anti-NSFW: ${isEnabled ? '🟢 ON' : '🔴 OFF'}
+➤ Anti-NSFW: ${isEnabled ? '🟢 ACTIVE (Strict Mode)' : '🔴 DISABLED'}
 
 ◈ USAGE
 ═══════════════════════════
 ➤ ${prefix}antinsfw on
 ➤ ${prefix}antinsfw off
+➤ ${prefix}antinsfw check
 
 ◈ FEATURES
 ═══════════════════════════
-• Detects 18+ content (Basic)
-• Auto-deletes NSFW images/videos
-• Warns users sending restricted content
+• Strict Skin Tone Detection (No AI)
+• Auto-deletes 18+ images/videos
+• Scans Video Thumbnails
+• Unsend First Policy (Instant Delete)
 • Keeps the group clean`);
       return;
     }
