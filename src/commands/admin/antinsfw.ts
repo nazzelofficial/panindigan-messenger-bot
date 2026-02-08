@@ -50,6 +50,12 @@ ${decorations.fire} 18+ Content Protection
     try {
       await antiNsfw.setEnabled(event.threadID, enable);
       
+      // Verify persistence immediately
+      const verify = await antiNsfw.isEnabled(event.threadID);
+      if (verify !== enable) {
+         BotLogger.warn(`[AntiNSFW] Persistence check failed for ${event.threadID}. Expected ${enable}, got ${verify}`);
+      }
+      
       BotLogger.info(`Anti-NSFW ${enable ? 'enabled' : 'disabled'} for group ${event.threadID}`);
       
       await reply(`🔞 『 ANTI-NSFW ${enable ? 'ENABLED' : 'DISABLED'} 』 🔞

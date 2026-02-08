@@ -133,14 +133,23 @@ async function createTables(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_music_queue_thread_pos ON music_queue(thread_id, position);
     `);
 
-    // Settings table
+    // Settings table (Enhanced for Redis replacement)
     await client.query(`
       CREATE TABLE IF NOT EXISTS settings (
         key VARCHAR(255) PRIMARY KEY,
         value JSONB NOT NULL,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP
       );
+      CREATE INDEX IF NOT EXISTS idx_settings_expires ON settings(expires_at);
     `);
+    
+    // Ensure expires_at column exists (for migration)
+    try {
+        await client.query('ALTER TABLE settings ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP');
+    } catch (e) {
+        // Ignore if column exists
+    }
 
     // Cooldowns table
     await client.query(`
@@ -170,6 +179,16 @@ async function createTables(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_transactions_user ON transactions(user_id);
       CREATE INDEX IF NOT EXISTS idx_transactions_created ON transactions(created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
+    `);
+
+    // Counters table (Replacement for Redis INCR)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS counters (
+        key VARCHAR(255) PRIMARY KEY,
+        value INTEGER DEFAULT 0,
+        expires_at TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_counters_expires ON counters(expires_at);
     `);
 
     await client.query('COMMIT');
@@ -385,7 +404,10 @@ export class Database {
   }
 
   async getOrCreateThread(threadId: string, name?: string, isGroup?: boolean): Promise<Thread | null> {
-    if (!pool || !isConnected) return null;
+    if (!pool || !isConnected) {
+      logger.warn(`getOrCreateThread failed: Database not connected (threadId: ${threadId})`);
+      return null;
+    }
     
     try {
       const res = await pool.query(`
@@ -397,6 +419,7 @@ export class Database {
       
       const thread = mapThread(res.rows[0]);
       cache.set(`thread_${threadId}`, thread);
+      // logger.debug(`Thread ensured: ${threadId}`);
       return thread;
     } catch (error) {
       logger.error('Failed to get or create thread', { threadId, error });
@@ -553,6 +576,28 @@ export class Database {
     }
   }
 
+  async getTTL(key: string): Promise<number> {
+    if (!pool || !isConnected) return -2; // -2 = key does not exist
+
+    try {
+      const res = await pool.query('SELECT expires_at FROM settings WHERE key = $1', [key]);
+      if (res.rows.length > 0) {
+        const row = res.rows[0];
+        if (!row.expires_at) return -1; // -1 = no expiry
+        
+        const now = new Date();
+        const expiresAt = new Date(row.expires_at);
+        if (expiresAt < now) return -2; // Expired
+        
+        return Math.floor((expiresAt.getTime() - now.getTime()) / 1000);
+      }
+      return -2;
+    } catch (error) {
+      logger.error('Failed to get TTL', { key, error });
+      return -2;
+    }
+  }
+
   async getSetting<T>(key: string): Promise<T | null> {
     const cacheKey = `setting_${key}`;
     const cachedSetting = cache.get<T>(cacheKey);
@@ -561,9 +606,15 @@ export class Database {
     if (!pool || !isConnected) return null;
     
     try {
-      const res = await pool.query('SELECT value FROM settings WHERE key = $1', [key]);
+      const res = await pool.query('SELECT value, expires_at FROM settings WHERE key = $1', [key]);
       if (res.rows.length > 0) {
-        const value = res.rows[0].value as T;
+        const row = res.rows[0];
+        if (row.expires_at && new Date(row.expires_at) < new Date()) {
+           // Expired
+           await this.deleteSetting(key);
+           return null;
+        }
+        const value = row.value as T;
         cache.set(cacheKey, value);
         return value;
       }
@@ -574,15 +625,17 @@ export class Database {
     }
   }
 
-  async setSetting(key: string, value: unknown): Promise<void> {
+  async setSetting(key: string, value: unknown, ttlSeconds?: number): Promise<void> {
     if (!pool || !isConnected) return;
     
     try {
+      const expiresAt = ttlSeconds ? new Date(Date.now() + ttlSeconds * 1000) : null;
+
       await pool.query(`
-        INSERT INTO settings (key, value, updated_at)
-        VALUES ($1, $2, NOW())
-        ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = NOW()
-      `, [key, JSON.stringify(value)]);
+        INSERT INTO settings (key, value, updated_at, expires_at)
+        VALUES ($1, $2, NOW(), $3)
+        ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = NOW(), expires_at = $3
+      `, [key, JSON.stringify(value), expiresAt]);
       
       cache.set(`setting_${key}`, value);
     } catch (error) {
@@ -662,6 +715,30 @@ export class Database {
     } catch (error) {
       logger.error('Failed to save appstate to database', { error });
       return false;
+    }
+  }
+
+  // Counter methods for Redis replacement (using settings table)
+  async increment(key: string, ttlSeconds: number = 60): Promise<number> {
+    if (!pool || !isConnected) return 0;
+    
+    try {
+      const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
+      
+      const res = await pool.query(`
+        INSERT INTO settings (key, value, updated_at, expires_at)
+        VALUES ($1, '1'::jsonb, NOW(), $2)
+        ON CONFLICT (key) DO UPDATE SET
+          value = to_jsonb(COALESCE((settings.value->>0)::int, 0) + 1),
+          updated_at = NOW(),
+          expires_at = $2
+        RETURNING value
+      `, [key, expiresAt]);
+      
+      return parseInt(res.rows[0].value);
+    } catch (error) {
+      logger.error('Failed to increment counter', { key, error });
+      return 0;
     }
   }
 

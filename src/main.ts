@@ -384,9 +384,16 @@ async function handleMessage(api: any, event: any): Promise<void> {
     BotLogger.debug(`Duplicate message ignored: ${messageId}`);
     return;
   }
+
+  // Ensure thread exists in database
+  const threadResult = await database.getOrCreateThread(threadId, event.isGroup ? event.threadName : undefined, event.isGroup);
+  if (!threadResult) {
+     BotLogger.warn(`Thread persistence failed for ${threadId}. Database might be disconnected.`);
+  }
   
   const isSelfMessage = senderId === currentUserId;
-  const customPrefix = await database.getSetting<string>(`prefix_${threadId}`) || prefix;
+  const thread = await database.getThread(threadId);
+  const customPrefix = thread?.prefix || prefix;
   
   // Check if group is locked FIRST - before any other processing
   if (!isSelfMessage) {

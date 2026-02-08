@@ -27,6 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Anti-NSFW Persistence** - Fixed an issue where the Anti-NSFW setting would reset to "OFF" after a bot restart due to data type mismatch (Boolean vs String) in PostgreSQL.
+- **Thread Persistence** - Fixed an issue where threads were not being saved to the database upon message receipt, causing empty threads table.
+- **Redis Removed** - Completely removed Redis dependency. All caching, rate limiting, and cooldowns are now handled natively by PostgreSQL (`settings` table with expiry) and in-memory fallback.
+- **Database Schema** - Added `expires_at` column to `settings` table to support TTL-based keys (replacing Redis).
+
+### Removed
+- **Redis** - Removed `ioredis` dependency and `REDIS_URL` configuration requirement.
 
 ## [2.12.1] - 2026-02-05
 

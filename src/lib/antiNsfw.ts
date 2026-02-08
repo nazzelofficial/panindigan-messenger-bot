@@ -40,6 +40,14 @@ export class AntiNsfw {
   async isEnabled(threadId: string): Promise<boolean> {
     const key = `${this.settingKey}_${threadId}`;
     const setting = await database.getSetting<boolean | string>(key);
+    
+    // Debug logging
+    if (setting === null) {
+        BotLogger.info(`[AntiNSFW] Status check for ${threadId}: NULL (Disabled)`);
+    } else {
+        BotLogger.info(`[AntiNSFW] Status check for ${threadId}: ${setting} (${typeof setting})`);
+    }
+
     // Handle both boolean and string for backward compatibility
     return setting === true || setting === 'true';
   }
