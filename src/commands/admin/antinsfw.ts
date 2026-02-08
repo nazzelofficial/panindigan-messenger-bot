@@ -48,8 +48,17 @@ ${decorations.fire} 18+ Content Protection
     const enable = option === 'on';
     
     try {
-      await antiNsfw.setEnabled(event.threadID, enable);
+      const success = await antiNsfw.setEnabled(event.threadID, enable);
       
+      if (!success) {
+         BotLogger.error(`[AntiNSFW] Database save failed for ${event.threadID}`);
+         await reply(`${decorations.fire} 『 DATABASE ERROR 』
+═══════════════════════════
+❌ Failed to save setting to database.
+The bot might be disconnected from PostgreSQL.`);
+         return;
+      }
+
       // Verify persistence immediately
       const verify = await antiNsfw.isEnabled(event.threadID);
       if (verify !== enable) {

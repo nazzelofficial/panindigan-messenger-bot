@@ -52,9 +52,9 @@ export class AntiNsfw {
     return setting === true || setting === 'true';
   }
 
-  async setEnabled(threadId: string, enabled: boolean): Promise<void> {
+  async setEnabled(threadId: string, enabled: boolean): Promise<boolean> {
     const key = `${this.settingKey}_${threadId}`;
-    await database.setSetting(key, enabled);
+    return await database.setSetting(key, enabled);
   }
 
   private async downloadImage(url: string): Promise<Buffer | null> {

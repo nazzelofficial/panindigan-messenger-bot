@@ -1,6 +1,7 @@
 import { Pool, PoolClient, QueryResult } from 'pg';
 import NodeCache from 'node-cache';
 import { logger } from '../lib/logger.js';
+import * as os from 'os';
 import type { User, Thread, Log, CommandStat, MusicQueueItem, Setting, Cooldown, NewLog, Transaction } from './schema.js';
 
 let pool: Pool | null = null;
@@ -25,11 +26,29 @@ export async function initDatabase(): Promise<boolean> {
   try {
     const isLocal = connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
     
+    // Determine SSL configuration based on connection string params and environment
+    let sslConfig: any = isLocal ? undefined : { rejectUnauthorized: false };
+    
+    try {
+      const url = new URL(connectionString);
+      const sslMode = url.searchParams.get('sslmode');
+      
+      if (sslMode === 'disable') {
+        sslConfig = undefined;
+      } else if (sslMode === 'require' || sslMode === 'no-verify') {
+        sslConfig = { rejectUnauthorized: false };
+      }
+    } catch (e) {
+      // Ignore URL parsing errors, fallback to default logic
+    }
+
+    logger.info(`Connecting to PostgreSQL (${isLocal ? 'Local/Standard' : 'Remote'}) with SSL: ${sslConfig ? 'ENABLED' : 'DISABLED'}`);
+
     pool = new Pool({
       connectionString,
       // Force SSL for remote connections (Koyeb, Neon, Supabase, etc.) even in dev
       // Disable SSL for local connections to avoid "SSL off" errors
-      ssl: isLocal ? undefined : { rejectUnauthorized: false },
+      ssl: sslConfig,
       connectionTimeoutMillis: 5000, // 5s timeout
     });
 
@@ -46,7 +65,11 @@ export async function initDatabase(): Promise<boolean> {
   } catch (error: any) {
     if (error.code === 'ECONNREFUSED') {
       const isLocalConfig = connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
-      if (isLocalConfig && process.env.NODE_ENV !== 'development') {
+      const isWindows = os.platform() === 'win32';
+      const isProduction = process.env.NODE_ENV === 'production';
+      
+      // Only show configuration error if explicitly in production on non-Windows (Cloud/Container)
+      if (isLocalConfig && isProduction && !isWindows) {
          logger.error('CONFIGURATION ERROR: You are trying to connect to "localhost" but the bot is running in a cloud/container environment. "localhost" refers to the container itself, not your database.\nSOLUTION: Update DATABASE_URL in your hosting settings to use the actual External Hostname of your database (e.g., db.bit.io, aws.neon.tech, etc.).');
       }
       logger.warn('PostgreSQL connection refused. Database features will be disabled. (Is the database running?)');
@@ -639,8 +662,11 @@ export class Database {
     }
   }
 
-  async setSetting(key: string, value: unknown, ttlSeconds?: number): Promise<void> {
-    if (!pool || !isConnected) return;
+  async setSetting(key: string, value: unknown, ttlSeconds?: number): Promise<boolean> {
+    if (!pool || !isConnected) {
+        logger.error(`setSetting failed: Database not connected (key: ${key})`);
+        return false;
+    }
     
     try {
       const expiresAt = ttlSeconds ? new Date(Date.now() + ttlSeconds * 1000) : null;
@@ -652,8 +678,10 @@ export class Database {
       `, [key, JSON.stringify(value), expiresAt]);
       
       cache.set(`setting_${key}`, value);
+      return true;
     } catch (error) {
       logger.error('Failed to set setting', { key, error });
+      return false;
     }
   }
 
