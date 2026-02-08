@@ -66,4 +66,4 @@ ENV NODE_ENV=production
 ENV PORT=5000
 
 # Start the application
-CMD ["node", "--max-old-space-size=4096", "dist/main.js"]
+CMD ["node", "dist/main.js"]
