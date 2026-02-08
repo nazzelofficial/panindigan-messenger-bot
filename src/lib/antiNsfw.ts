@@ -71,7 +71,7 @@ export class AntiNsfw {
       for (let y = 0; y < height; y += 2) {
         for (let x = 0; x < width; x += 2) {
           const hex = image.getPixelColor(x, y);
-          const rgba = Jimp.intToRGBA(hex);
+          const rgba = { r: (hex >>> 24) & 0xff, g: (hex >>> 16) & 0xff, b: (hex >>> 8) & 0xff, a: hex & 0xff };
           const { r, g, b } = rgba;
 
           // Standard skin detection rules (RGB)

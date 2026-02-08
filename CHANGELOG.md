@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.12.2] - 2026-02-08
+
+### Changed
+
+#### Security & Moderation
+- **Strict Non-AI NSFW Detection** - Replaced AI-based (nsfwjs) detection with a strict algorithmic skin tone detection system.
+  - **Pixel-Level Analysis**: Scans every pixel for skin tone patterns (RGB/HSV rules).
+  - **Zero Tolerance**: Automatically deletes images/videos with >30% skin content.
+  - **Video Thumbnail Scanning**: Now scans video thumbnails for restricted content.
+  - **Unsend First Policy**: Immediately unsends restricted messages before sending a warning to minimize exposure.
+  - **Performance**: Significantly faster detection with lower memory usage (no large model loading).
+- **Environment Security** - Added `APP_STATE` environment variable support for secure runtime session injection (Koyeb/Docker).
+
+#### Infrastructure
+- **Node.js Upgrade** - Upgraded project compatibility to Node.js v23 (Alpine) for better performance and security.
+- **Dependency Optimization** - Removed unused postinstall scripts and optimized build process.
+
 ## [2.12.1] - 2026-02-05
 
 ### Added
