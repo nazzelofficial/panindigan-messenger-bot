@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Node.js Upgrade** - Upgraded project compatibility to Node.js v23 (Alpine) for better performance and security.
 - **Dependency Optimization** - Removed unused postinstall scripts and optimized build process.
 
+### Fixed
+
+- **Anti-NSFW Persistence** - Fixed an issue where the Anti-NSFW setting would reset to "OFF" after a bot restart due to data type mismatch (Boolean vs String) in PostgreSQL.
+
 ## [2.12.1] - 2026-02-05
 
 ### Added
