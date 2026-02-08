@@ -39,13 +39,14 @@ export class AntiNsfw {
 
   async isEnabled(threadId: string): Promise<boolean> {
     const key = `${this.settingKey}_${threadId}`;
-    const setting = await database.getSetting<string>(key);
-    return setting === 'true';
+    const setting = await database.getSetting<boolean | string>(key);
+    // Handle both boolean and string for backward compatibility
+    return setting === true || setting === 'true';
   }
 
   async setEnabled(threadId: string, enabled: boolean): Promise<void> {
     const key = `${this.settingKey}_${threadId}`;
-    await database.setSetting(key, String(enabled));
+    await database.setSetting(key, enabled);
   }
 
   private async downloadImage(url: string): Promise<Buffer | null> {
