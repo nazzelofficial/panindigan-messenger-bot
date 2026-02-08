@@ -46,6 +46,7 @@ RUN pnpm install --frozen-lockfile --prod
 # Copy built files from builder stage
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/config.json ./config.json
+COPY --from=builder /app/src/models ./src/models
 
 # Create necessary directories
 RUN mkdir -p logs music && \
