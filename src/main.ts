@@ -418,16 +418,25 @@ async function handleMessage(api: any, event: any): Promise<void> {
       const nsfwCheck = await antiNsfw.checkContent(event);
       if (nsfwCheck.detected) {
         try {
-          await api.sendMessage(
-            `⚠️ Restricted content detected. This message has been removed.`,
-            threadId
-          );
-          // Unsend the message
+          // Attempt to unsend the message immediately
           if (messageId) {
              await api.unsendMessage(messageId);
+             BotLogger.info(`NSFW Auto-Mod: Unsent message ${messageId} in ${threadId}`);
           }
+
+          await api.sendMessage(
+            `⚠️ Restricted content detected. This message has been automatically removed.`,
+            threadId
+          );
         } catch (e) {
           BotLogger.error('Failed to unsend NSFW message', e);
+          try {
+             // Fallback notification if unsend fails (likely due to permissions)
+             await api.sendMessage(
+               `⚠️ Restricted content detected.\n\n❌ I could not unsend the message. Please ensure I am a Group Admin.`,
+               threadId
+             );
+          } catch(err) {}
         }
         
         await database.logEntry({

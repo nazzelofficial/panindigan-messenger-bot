@@ -220,7 +220,11 @@ export class AntiNsfw {
 
   private checkFilename(filename: string | undefined): NsfwDetectionResult {
     if (!filename) return { detected: false, type: 'clean', severity: 'low' };
-    if (filename.match(/xxx|porn|nsfw|sex|nude|18\+|hentai|dick|cock|pussy|vagina/i)) {
+    
+    // Enhanced regex with Tagalog/Filipino NSFW terms
+    const nsfwRegex = /xxx|porn|nsfw|sex|nude|18\+|hentai|dick|cock|pussy|vagina|bastos|libog|kantot|pekpek|tite|boobs|dede|bold|scandal|iyot/i;
+    
+    if (filename.match(nsfwRegex)) {
       return { detected: true, type: 'image', severity: 'high', class: 'Filename' };
     }
     return { detected: false, type: 'clean', severity: 'low' };
