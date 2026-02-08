@@ -10,8 +10,14 @@ import config from '../../config.json' with { type: 'json' };
 export function createServer(): Express {
   const app = express();
   
-  // Serve models directory statically to avoid file:// protocol issues with nsfwjs
-  app.use('/models', express.static(path.join(process.cwd(), 'src/models')));
+  const modelsPath = path.join(process.cwd(), 'src/models');
+  BotLogger.info(`Serving models from: ${modelsPath}`);
+  
+  // Serve models directory statically
+  app.use('/models', (req, res, next) => {
+    BotLogger.debug(`Model request: ${req.url}`);
+    next();
+  }, express.static(modelsPath));
 
   app.use(express.json());
   
