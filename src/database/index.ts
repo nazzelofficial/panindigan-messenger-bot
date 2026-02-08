@@ -6,6 +6,10 @@ import type { User, Thread, Log, CommandStat, MusicQueueItem, Setting, Cooldown,
 let pool: Pool | null = null;
 let isConnected = false;
 
+export function isDatabaseConnected(): boolean {
+  return isConnected;
+}
+
 // Initialize cache with 1 minute TTL by default
 const cache = new NodeCache({ stdTTL: 60, checkperiod: 120 });
 
@@ -41,6 +45,10 @@ export async function initDatabase(): Promise<boolean> {
     return true;
   } catch (error: any) {
     if (error.code === 'ECONNREFUSED') {
+      const isLocalConfig = connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
+      if (isLocalConfig && process.env.NODE_ENV !== 'development') {
+         logger.error('CONFIGURATION ERROR: You are trying to connect to "localhost" but the bot is running in a cloud/container environment. "localhost" refers to the container itself, not your database.\nSOLUTION: Update DATABASE_URL in your hosting settings to use the actual External Hostname of your database (e.g., db.bit.io, aws.neon.tech, etc.).');
+      }
       logger.warn('PostgreSQL connection refused. Database features will be disabled. (Is the database running?)');
     } else {
       logger.error('Failed to connect to PostgreSQL', { error });
