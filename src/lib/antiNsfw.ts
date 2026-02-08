@@ -22,44 +22,20 @@ export interface NsfwDetectionResult {
 
 export class AntiNsfw {
   private settingKey = 'antinsfw';
-  private model: NSFWJS | null = null;
-  private isModelLoading = false;
-  private isProcessing = false; // Mutex for processing
+  // private model: NSFWJS | null = null; // Disabled per user request (Wag AI)
+  // private isModelLoading = false;
+  // private isProcessing = false; // Mutex for processing
 
   constructor() {
-    // Model loading deferred to init() to ensure server is running
+    // Model loading disabled
   }
 
   async init() {
-    await this.loadModel();
+    // await this.loadModel(); // Disabled
+    BotLogger.info('NSFW Detection: Using Algorithmic Skin Tone Detection (Strict Mode)');
   }
 
-  private async loadModel() {
-    if (this.model || this.isModelLoading) return;
-
-    this.isModelLoading = true;
-    try {
-      // Load the model from local server (exposed via express static)
-      // This avoids file:// protocol issues in Node.js environment
-      const port = config.server.port || 5000;
-      const modelUrl = `http://localhost:${port}/models/nsfwjs/model.json`;
-      
-      BotLogger.info(`Loading NSFW model from ${modelUrl}...`);
-      this.model = await nsfwjs.load(modelUrl);
-      BotLogger.success('NSFW Detection Model loaded successfully from local server');
-    } catch (error) {
-      BotLogger.error('Failed to load NSFW Detection Model (Local Server)', error);
-      // Fallback to default if local fails
-      try {
-        this.model = await nsfwjs.load();
-        BotLogger.success('NSFW Detection Model loaded from CDN (Fallback)');
-      } catch (e) {
-        BotLogger.error('Failed to load NSFW Detection Model (CDN)', e);
-      }
-    } finally {
-      this.isModelLoading = false;
-    }
-  }
+  // private async loadModel() { ... } // Removed
 
   async isEnabled(threadId: string): Promise<boolean> {
     const key = `${this.settingKey}_${threadId}`;
@@ -82,131 +58,83 @@ export class AntiNsfw {
     }
   }
 
-  private async decodeImageTo3D(buffer: Buffer): Promise<tf.Tensor3D> {
-    const image = await Jimp.read(buffer);
-    const width = image.bitmap.width;
-    const height = image.bitmap.height;
-    
-    const p = image.bitmap.data;
-    const data = new Int32Array(width * height * 3);
-    
-    for (let i = 0; i < width * height; i++) {
-        data[i * 3] = p[i * 4];      // R
-        data[i * 3 + 1] = p[i * 4 + 1];  // G
-        data[i * 3 + 2] = p[i * 4 + 2];  // B
+  // Simple Skin Tone Detection Algorithm (Non-AI)
+  private async checkSkinTone(buffer: Buffer): Promise<NsfwDetectionResult> {
+    try {
+      const image = await Jimp.read(buffer);
+      const width = image.bitmap.width;
+      const height = image.bitmap.height;
+      let skinPixels = 0;
+      const totalPixels = width * height;
+
+      // Scan every 2nd pixel to save CPU
+      for (let y = 0; y < height; y += 2) {
+        for (let x = 0; x < width; x += 2) {
+          const hex = image.getPixelColor(x, y);
+          const rgba = Jimp.intToRGBA(hex);
+          const { r, g, b } = rgba;
+
+          // Standard skin detection rules (RGB)
+          // Rule 1: R > 95, G > 40, B > 20
+          // Rule 2: max(R,G,B) - min(R,G,B) > 15
+          // Rule 3: |R-G| > 15
+          // Rule 4: R > G and R > B
+          if (
+            r > 95 && g > 40 && b > 20 &&
+            Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
+            Math.abs(r - g) > 15 &&
+            r > g && r > b
+          ) {
+            skinPixels++;
+          }
+        }
+      }
+
+      // Calculate percentage (multiply by 4 because we skipped pixels)
+      const percentage = (skinPixels * 4 / totalPixels) * 100;
+      
+      // Strict Threshold: If > 30% skin, flag it
+      if (percentage > 30) {
+        return { 
+          detected: true, 
+          type: 'image', 
+          severity: 'high', 
+          class: `High Skin Content (${percentage.toFixed(1)}%)`,
+          confidence: percentage / 100
+        };
+      }
+      
+      return { detected: false, type: 'clean', severity: 'low' };
+
+    } catch (e) {
+      return { detected: false, type: 'clean', severity: 'low' };
     }
-    
-    return tf.tensor3d(data, [height, width, 3], 'int32');
   }
 
   async checkContent(event: any): Promise<NsfwDetectionResult> {
     const attachments = event.attachments || [];
     if (attachments.length === 0) return { detected: false, type: 'clean', severity: 'low' };
 
-    // Ensure model is loaded
-    if (!this.model) {
-      await this.loadModel();
-    }
-    
-    // If model still failed to load, fallback to filename check only
-    if (!this.model) {
-      return this.checkFilenames(attachments);
-    }
-
     for (const attachment of attachments) {
-      // Check Filename first (faster)
+      // Check Filename first
       const filenameCheck = this.checkFilename(attachment.filename);
       if (filenameCheck.detected) return filenameCheck;
 
-      // Image Analysis
-      if (attachment.type === 'photo' || attachment.type === 'animated_image') {
-        const url = attachment.previewUrl || attachment.url; // Use previewUrl if available (smaller)
+      // Image Analysis (Skin Tone)
+      if (attachment.type === 'photo' || attachment.type === 'animated_image' || attachment.type === 'video') {
+        // Use preview/thumbnail if available
+        const url = attachment.previewUrl || attachment.thumbnailUrl || attachment.url;
         if (!url) continue;
 
         try {
           const imageBuffer = await this.downloadImage(url);
-          if (!imageBuffer) continue;
-
-          // Decode image
-          const image = await this.decodeImageTo3D(imageBuffer);
-          
-          // Predict (Serialized to prevent OOM)
-          while (this.isProcessing) {
-            await new Promise(resolve => setTimeout(resolve, 100));
+          if (imageBuffer) {
+             const skinCheck = await this.checkSkinTone(imageBuffer);
+             if (skinCheck.detected) return skinCheck;
           }
-          this.isProcessing = true;
-          let predictions;
-          try {
-            predictions = await this.model.classify(image);
-          } finally {
-            this.isProcessing = false;
-            image.dispose(); // Cleanup tensor memory immediately
-          }
-
-          // Check predictions
-          // Classes: Porn, Hentai, Sexy, Neutral, Drawing
-          const porn = predictions.find(p => p.className === 'Porn');
-          const hentai = predictions.find(p => p.className === 'Hentai');
-          const sexy = predictions.find(p => p.className === 'Sexy');
-
-          if (
-            (porn && porn.probability > 0.45) || 
-            (hentai && hentai.probability > 0.45) ||
-            (sexy && sexy.probability > 0.75)
-          ) {
-            const highest = [porn, hentai, sexy].sort((a, b) => (b?.probability || 0) - (a?.probability || 0))[0];
-            return { 
-              detected: true, 
-              type: 'image', 
-              severity: 'high', 
-              confidence: highest?.probability || 0,
-              class: highest?.className || 'Restricted'
-            };
-          }
-
         } catch (err) {
           BotLogger.warn(`Failed to scan image attachment: ${err instanceof Error ? err.message : String(err)}`);
         }
-      }
-      
-      // Video Analysis (Thumbnail check)
-      if (attachment.type === 'video') {
-         // Try to scan thumbnail if available
-         // Facebook often sends a thumbnail URL for videos
-         // The attachment object usually has thumbnailUrl or previewUrl
-         // We'll treat it like an image scan
-         /* 
-            Note: Sulyap-FCA/Facebook attachments for video sometimes have 'thumbnailUrl' property
-         */
-         const thumbnailUrl = attachment.thumbnailUrl || attachment.previewUrl;
-         if (thumbnailUrl) {
-            try {
-              const imageBuffer = await this.downloadImage(thumbnailUrl);
-              if (imageBuffer) {
-                const image = await this.decodeImageTo3D(imageBuffer);
-                
-                // Serialized prediction
-                while (this.isProcessing) {
-                  await new Promise(resolve => setTimeout(resolve, 100));
-                }
-                this.isProcessing = true;
-                let predictions;
-                try {
-                  predictions = await this.model.classify(image);
-                } finally {
-                  this.isProcessing = false;
-                  image.dispose();
-                }
-
-                const porn = predictions.find(p => p.className === 'Porn');
-                const hentai = predictions.find(p => p.className === 'Hentai');
-
-                if ((porn && porn.probability > 0.60) || (hentai && hentai.probability > 0.60)) {
-                  return { detected: true, type: 'video', severity: 'high', confidence: Math.max(porn?.probability || 0, hentai?.probability || 0), class: 'Video Thumbnail' };
-                }
-              }
-            } catch (e) {}
-         }
       }
     }
 
