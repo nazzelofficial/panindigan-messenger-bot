@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import fs from 'fs';
-import { login } from 'ws3-fca';
+import login from './lib/fca-adapter.js';
 import { BotLogger, logger } from './lib/logger.js';
 import { commandHandler } from './lib/commandHandler.js';
 import { database, initDatabase } from './database/index.js';

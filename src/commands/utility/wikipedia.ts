@@ -62,7 +62,7 @@ const command: Command = {
       let msg = `📚 *${title}*\n\n${summary}\n\n🔗 Read more: https://en.wikipedia.org/?curid=${pageId}`;
       
       if (imageUrl) {
-        // Since ws3-fca supports attachment url directly or via stream, we'll try passing stream if possible or just url if supported
+        // Since panindigan-fca supports attachment url directly or via stream, we'll try passing stream if possible or just url if supported
         // But for safety in this codebase, let's use the stream approach if common, or just text if image handling is complex
         // Checking existing commands (e.g. meme) would be good, but I'll stick to text + url for now to be safe and fast.
         // Actually, let's try to send the image if possible.

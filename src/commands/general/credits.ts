@@ -22,9 +22,8 @@ const command: Command = {
 🔖 Version: ${config.bot.version}
 
 📚 Libraries Used:
-• fca-unofficial (Messenger API)
-• MongoDB (Database)
-• Redis (Caching)
+• panindigan-fca (Messenger API)
+• PostgreSQL (Database)
 • OpenAI (AI Features)
 • FFmpeg (Audio Processing)
 

@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Usage**: `antitoxic on` to enable, `antitoxic off` to disable.
   - **Integration**: Fully integrated with the core moderation system (`BadWordsFilter`) for consistent enforcement.
   - **Coverage**: Blocks a comprehensive list of Filipino and English profanity.
+- **Dependency:** Updated `panindigan-fca` to version `1.4.1`.
+
+### Changed
+
+- **Library Switch** - Replaced `ws3-fca` with `panindigan-fca` for better stability and features.
+- **Credits Updated** - Updated `credits` command to reflect current technology stack (PostgreSQL, panindigan-fca).
 
 ## [2.12.3] - 2026-02-09
 
