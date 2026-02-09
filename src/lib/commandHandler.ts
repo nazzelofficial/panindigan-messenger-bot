@@ -126,32 +126,35 @@ export class CommandHandler {
     const userId = context.event.senderID;
     const threadId = context.event.threadID;
 
-    const globalCheck = await antiSpam.checkGlobalCooldown(userId);
-    if (!globalCheck.allowed) {
-      const message = (this.config.messages as any).globalCooldown
-        ?.replace('{time}', globalCheck.remaining.toString())
-        || `⏳ Please wait ${globalCheck.remaining}s`;
-      await context.reply(message);
-      return;
-    }
+    // Skip Anti-Spam for Owner
+    if (!isOwner(userId)) {
+      const globalCheck = await antiSpam.checkGlobalCooldown(userId);
+      if (!globalCheck.allowed) {
+        const message = (this.config.messages as any).globalCooldown
+          ?.replace('{time}', globalCheck.remaining.toString())
+          || `⏳ Please wait ${globalCheck.remaining}s`;
+        await context.reply(message);
+        return;
+      }
 
-    const rateCheck = await antiSpam.checkRateLimit(userId);
-    if (!rateCheck.allowed) {
-      const message = (this.config.messages as any).rateLimited
-        ?.replace('{time}', rateCheck.remaining.toString())
-        || `🚫 Rate limited. Wait ${rateCheck.remaining}s`;
-      await context.reply(message);
-      return;
-    }
+      const rateCheck = await antiSpam.checkRateLimit(userId);
+      if (!rateCheck.allowed) {
+        const message = (this.config.messages as any).rateLimited
+          ?.replace('{time}', rateCheck.remaining.toString())
+          || `🚫 Rate limited. Wait ${rateCheck.remaining}s`;
+        await context.reply(message);
+        return;
+      }
 
-    if (rateCheck.warning) {
-      logger.warn(`User ${userId} approaching rate limit`);
-    }
+      if (rateCheck.warning) {
+        logger.warn(`User ${userId} approaching rate limit`);
+      }
 
-    const threadRateCheck = await antiSpam.checkThreadRateLimit(threadId);
-    if (!threadRateCheck.allowed) {
-      logger.warn(`Thread ${threadId} rate limited`);
-      return;
+      const threadRateCheck = await antiSpam.checkThreadRateLimit(threadId);
+      if (!threadRateCheck.allowed) {
+        logger.warn(`Thread ${threadId} rate limited`);
+        return;
+      }
     }
 
     const banData = await database.getSetting(`banned_${userId}`);
