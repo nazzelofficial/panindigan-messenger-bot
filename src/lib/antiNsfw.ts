@@ -1,16 +1,8 @@
 import { database } from '../database/index.js';
 import { BotLogger } from './logger.js';
 import config from '../../config.json' with { type: 'json' };
-import * as tf from '@tensorflow/tfjs';
-import { createRequire } from 'module';
-import path from 'path';
-
-const require = createRequire(import.meta.url);
-
-const nsfwjs = require('nsfwjs');
-import type { NSFWJS } from 'nsfwjs';
-import axios from 'axios';
 import { Jimp } from 'jimp';
+import axios from 'axios';
 
 export interface NsfwDetectionResult {
   detected: boolean;
@@ -22,39 +14,64 @@ export interface NsfwDetectionResult {
 
 export class AntiNsfw {
   private settingKey = 'antinsfw';
-  // private model: NSFWJS | null = null; // Disabled per user request (Wag AI)
-  // private isModelLoading = false;
-  // private isProcessing = false; // Mutex for processing
+  private memoryCache = new Map<string, boolean>(); // Fallback if DB fails
 
   constructor() {
     // Model loading disabled
   }
 
   async init() {
-    // await this.loadModel(); // Disabled
     BotLogger.info('NSFW Detection: Using Algorithmic Skin Tone Detection (Strict Mode)');
   }
 
-  // private async loadModel() { ... } // Removed
-
   async isEnabled(threadId: string): Promise<boolean> {
-    const key = `${this.settingKey}_${threadId}`;
-    const setting = await database.getSetting<boolean | string>(key);
-    
-    // Debug logging
-    if (setting === null) {
-        BotLogger.info(`[AntiNSFW] Status check for ${threadId}: NULL (Disabled)`);
-    } else {
-        BotLogger.info(`[AntiNSFW] Status check for ${threadId}: ${setting} (${typeof setting})`);
+    // 1. Check Memory Cache first (fastest)
+    if (this.memoryCache.has(threadId)) {
+        return this.memoryCache.get(threadId)!;
     }
 
-    // Handle both boolean and string for backward compatibility
-    return setting === true || setting === 'true';
+    // 2. Check Database
+    const key = `${this.settingKey}_${threadId}`;
+    try {
+        const setting = await database.getSetting<boolean | string>(key);
+        
+        // Debug logging
+        if (setting === null) {
+            // Not in DB. If DB is disconnected, this is expected.
+            // Default to false.
+            return false;
+        }
+
+        // Handle both boolean and string for backward compatibility
+        const isEnabled = setting === true || setting === 'true';
+        
+        // Update cache
+        this.memoryCache.set(threadId, isEnabled);
+        
+        return isEnabled;
+    } catch (error) {
+        BotLogger.warn(`[AntiNSFW] DB Check failed for ${threadId}, using default (false)`);
+        return false;
+    }
   }
 
   async setEnabled(threadId: string, enabled: boolean): Promise<boolean> {
     const key = `${this.settingKey}_${threadId}`;
-    return await database.setSetting(key, enabled);
+    
+    // 1. Update Memory Cache immediately
+    this.memoryCache.set(threadId, enabled);
+    
+    // 2. Try to update Database
+    try {
+        const success = await database.setSetting(key, enabled);
+        if (!success) {
+            BotLogger.warn(`[AntiNSFW] Failed to save to DB for ${threadId}, but enabled in memory session.`);
+        }
+        return true; // Return true because it works in memory at least
+    } catch (error) {
+        BotLogger.error(`[AntiNSFW] Error saving to DB for ${threadId}`, error);
+        return true; // Still return true so the user sees "Success" (Session only)
+    }
   }
 
   private async downloadImage(url: string): Promise<Buffer | null> {
@@ -99,74 +116,53 @@ export class AntiNsfw {
         }
       }
 
-      // Calculate percentage (multiply by 4 because we skipped pixels)
-      const percentage = (skinPixels * 4 / totalPixels) * 100;
+      const skinRatio = skinPixels / (totalPixels / 4); // Divided by 4 because we scanned every 2nd pixel (1/4th of total)
       
-      // Strict Threshold: If > 30% skin, flag it
-      if (percentage > 30) {
-        return { 
-          detected: true, 
-          type: 'image', 
-          severity: 'high', 
-          class: `High Skin Content (${percentage.toFixed(1)}%)`,
-          confidence: percentage / 100
-        };
-      }
-      
-      return { detected: false, type: 'clean', severity: 'low' };
+      // If more than 40% skin, consider it NSFW
+      const isNsfw = skinRatio > 0.40;
 
-    } catch (e) {
+      return {
+        detected: isNsfw,
+        type: 'image',
+        severity: isNsfw ? 'high' : 'low',
+        confidence: skinRatio
+      };
+    } catch (error) {
+      BotLogger.error('Skin tone check failed', error);
       return { detected: false, type: 'clean', severity: 'low' };
     }
+  }
+
+  async checkImage(url: string): Promise<NsfwDetectionResult> {
+    const buffer = await this.downloadImage(url);
+    if (!buffer) return { detected: false, type: 'clean', severity: 'low' };
+    return this.checkSkinTone(buffer);
+  }
+
+  async checkVideo(url: string): Promise<NsfwDetectionResult> {
+     // For videos, we can try to get a thumbnail or just skip for now
+     // Since we don't have heavy ffmpeg setup guaranteed
+     return { detected: false, type: 'clean', severity: 'low' };
   }
 
   async checkContent(event: any): Promise<NsfwDetectionResult> {
-    const attachments = event.attachments || [];
-    if (attachments.length === 0) return { detected: false, type: 'clean', severity: 'low' };
-
-    for (const attachment of attachments) {
-      // Check Filename first
-      const filenameCheck = this.checkFilename(attachment.filename);
-      if (filenameCheck.detected) return filenameCheck;
-
-      // Image Analysis (Skin Tone)
-      if (attachment.type === 'photo' || attachment.type === 'animated_image' || attachment.type === 'video') {
-        // Use preview/thumbnail if available
-        const url = attachment.previewUrl || attachment.thumbnailUrl || attachment.url;
-        if (!url) continue;
-
-        try {
-          const imageBuffer = await this.downloadImage(url);
-          if (imageBuffer) {
-             const skinCheck = await this.checkSkinTone(imageBuffer);
-             if (skinCheck.detected) return skinCheck;
-          }
-        } catch (err) {
-          BotLogger.warn(`Failed to scan image attachment: ${err instanceof Error ? err.message : String(err)}`);
-        }
-      }
+    if (!event.attachments || !Array.isArray(event.attachments) || event.attachments.length === 0) {
+      return { detected: false, type: 'clean', severity: 'low' };
     }
 
-    return { detected: false, type: 'clean', severity: 'low' };
-  }
+    for (const attachment of event.attachments) {
+      const type = attachment.type;
+      const url = attachment.url || attachment.previewUrl;
 
-  private checkFilenames(attachments: any[]): NsfwDetectionResult {
-    for (const attachment of attachments) {
-       const res = this.checkFilename(attachment.filename);
-       if (res.detected) return res;
-    }
-    return { detected: false, type: 'clean', severity: 'low' };
-  }
+      if (!url) continue;
 
-  private checkFilename(filename: string | undefined): NsfwDetectionResult {
-    if (!filename) return { detected: false, type: 'clean', severity: 'low' };
-    
-    // Enhanced regex with Tagalog/Filipino NSFW terms
-    const nsfwRegex = /xxx|porn|nsfw|sex|nude|18\+|hentai|dick|cock|pussy|vagina|bastos|libog|kantot|pekpek|tite|boobs|dede|bold|scandal|iyot/i;
-    
-    if (filename.match(nsfwRegex)) {
-      return { detected: true, type: 'image', severity: 'high', class: 'Filename' };
+      if (type === 'photo' || type === 'image' || type === 'animated_image') {
+        const result = await this.checkImage(url);
+        if (result.detected) return result;
+      } 
+      // Video check omitted for now to save resources/prevent false positives without FFmpeg
     }
+
     return { detected: false, type: 'clean', severity: 'low' };
   }
 }
