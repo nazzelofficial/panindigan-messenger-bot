@@ -771,9 +771,15 @@ export class Database {
         INSERT INTO settings (key, value, updated_at, expires_at)
         VALUES ($1, '1'::jsonb, NOW(), $2)
         ON CONFLICT (key) DO UPDATE SET
-          value = to_jsonb(COALESCE((settings.value->>0)::int, 0) + 1),
-          updated_at = NOW(),
-          expires_at = $2
+          value = CASE 
+            WHEN settings.expires_at < NOW() THEN '1'::jsonb
+            ELSE to_jsonb(COALESCE((settings.value->>0)::int, 0) + 1)
+          END,
+          expires_at = CASE 
+            WHEN settings.expires_at < NOW() THEN $2
+            ELSE settings.expires_at
+          END,
+          updated_at = NOW()
         RETURNING value
       `, [key, expiresAt]);
       

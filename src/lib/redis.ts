@@ -93,7 +93,17 @@ class RedisClient {
     if (this.useMemory()) {
         const current = (this.memoryCache.get<number>(key) || 0);
         const next = current + 1;
-        this.memoryCache.set(key, next);
+        
+        // Preserve existing TTL if key exists
+        const ttl = this.memoryCache.getTtl(key);
+        if (ttl && ttl > Date.now()) {
+            const remaining = Math.ceil((ttl - Date.now()) / 1000);
+            this.memoryCache.set(key, next, remaining);
+        } else {
+            // New key or expired, set without TTL (will be set by caller usually, or infinite)
+            // But for rate limiting, we expect caller to set TTL if it's 1.
+            this.memoryCache.set(key, next); 
+        }
         return next;
     }
     return await database.increment(key);

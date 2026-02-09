@@ -1,7 +1,7 @@
 {
   "bot": {
     "name": "Panindigan Bot",
-    "version": "2.12.1",
+    "version": "2.12.3",
     "prefix": "P!",
     "description": "Advanced Facebook Messenger User-Bot",
     "selfListen": true,
@@ -55,10 +55,10 @@
   },
   "antiSpam": {
     "enabled": true,
-    "globalCooldown": 2000,
-    "maxMessagesPerMinute": 15,
-    "maxMessagesPerThread": 10,
-    "warningThreshold": 12,
+    "globalCooldown": 1000,
+    "maxMessagesPerMinute": 60,
+    "maxMessagesPerThread": 60,
+    "warningThreshold": 50,
     "blockDuration": 30000
   },
   "commands": {

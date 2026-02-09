@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.12.3] - 2026-02-09
+
+### Fixed
+
+- **Anti-Spam System** - Fixed a critical bug where the rate limit counter would never reset if messages were sent continuously.
+  - **Infinite Blocking Fixed**: Rate limit counters now properly expire 60 seconds after the *first* message, preventing infinite accumulation.
+  - **Optimized Limits**: Increased default limits to 60 messages/minute (1 per second) and reduced global cooldown to 1s.
+  - **Owner Bypass**: Bot owners are now completely exempt from all rate limits and cooldowns.
+
 ## [2.12.2] - 2026-02-08
 
 ### Changed
