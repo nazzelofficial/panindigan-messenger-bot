@@ -1,5 +1,5 @@
 import type { Command, CommandContext } from '../../types/index.js';
-import { database } from '../../database/index.js';
+import { badWordsFilter } from '../../lib/badwords.js';
 
 const command: Command = {
   name: 'antiswear',
@@ -16,12 +16,12 @@ const command: Command = {
     const threadId = event.threadID;
 
     if (args.length === 0) {
-      const current = await database.getSetting<boolean>(`antiswear_${threadId}`) || false;
+      const settings = await badWordsFilter.getSettings(threadId);
       await reply(`┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃     🤬 𝗔𝗡𝗧𝗜-𝗦𝗪𝗘𝗔𝗥 🤬     ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-📊 𝗖𝘂𝗿𝗿𝗲𝗻𝘁 𝗦𝘁𝗮𝘁𝘂𝘀: ${current ? '🟢 ON' : '🔴 OFF'}
+📊 𝗖𝘂𝗿𝗿𝗲𝗻𝘁 𝗦𝘁𝗮𝘁𝘂𝘀: ${settings.badWordsEnabled ? '🟢 ON' : '🔴 OFF'}
 
 📝 𝗨𝘀𝗮𝗴𝗲:
 • ${prefix}antiswear on
@@ -51,7 +51,7 @@ const command: Command = {
     }
 
     const enabled = mode === 'on';
-    await database.setSetting(`antiswear_${threadId}`, enabled);
+    await badWordsFilter.updateSettings({ badWordsEnabled: enabled }, threadId);
 
     await reply(`┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃     🤬 𝗔𝗡𝗧𝗜-𝗦𝗪𝗘𝗔𝗥 🤬     ┃

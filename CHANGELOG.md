@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.12.4] - 2026-02-09
+
+### Added
+
+- **Anti-Toxic Command** - Added new `antitoxic` admin command to easily block all inappropriate and toxic words in the group.
+  - **Usage**: `antitoxic on` to enable, `antitoxic off` to disable.
+  - **Integration**: Fully integrated with the core moderation system (`BadWordsFilter`) for consistent enforcement.
+  - **Coverage**: Blocks a comprehensive list of Filipino and English profanity.
+
 ## [2.12.3] - 2026-02-09
 
 ### Fixed

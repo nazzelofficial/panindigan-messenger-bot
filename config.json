@@ -1,7 +1,7 @@
 {
   "bot": {
     "name": "Panindigan Bot",
-    "version": "2.12.3",
+    "version": "2.12.4",
     "prefix": "P!",
     "description": "Advanced Facebook Messenger User-Bot",
     "selfListen": true,
