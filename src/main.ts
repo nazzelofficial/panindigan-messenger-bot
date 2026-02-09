@@ -467,6 +467,16 @@ async function handleMessage(api: any, event: any): Promise<void> {
       const settings = await badWordsFilter.getSettings(threadId);
       const warnings = await badWordsFilter.addUserWarning(senderId, threadId);
       
+      // Always try to unsend/delete the message if it's a bad word and filter is enabled
+      // This enforces the "block" behavior
+      if (messageId) {
+        try {
+          await api.unsendMessage(messageId);
+        } catch (e) {
+          BotLogger.warn(`Failed to unsend bad word message in ${threadId}`);
+        }
+      }
+
       if (settings.action === 'warn' && detection.message) {
         try {
           await api.sendMessage(
