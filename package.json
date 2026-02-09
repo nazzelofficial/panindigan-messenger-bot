@@ -50,7 +50,7 @@
     "node-fetch": "^3.3.2",
     "nsfwjs": "^4.2.1",
     "openai": "^6.10.0",
-    "panindigan-fca": "1.4.13",
+    "panindigan-fca": "1.4.15",
     "pg": "^8.18.0",
     "unzipper": "^0.12.3",
     "uuid": "^11.1.0",
