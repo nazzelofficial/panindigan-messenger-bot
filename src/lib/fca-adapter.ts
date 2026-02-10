@@ -1,14 +1,14 @@
-import { PanindiganClient } from 'panindigan-fca';
-import type { LoginOptions, ApiOption } from 'panindigan-fca';
+import { PanindiganFCA } from 'panindigan';
+import type { LoginOptions, PanindiganFCAOptions } from 'panindigan';
 
 // Adapter function to maintain compatibility with ws3-fca style
 export default function login(
   credentials: { appState: any[] },
-  options: ApiOption,
+  options: PanindiganFCAOptions,
   callback: (err: any, api?: any) => void
 ) {
   try {
-    const client = new PanindiganClient(options);
+    const client = new PanindiganFCA(options);
     
     // Adapt credentials
     const loginOpts: LoginOptions = {
@@ -21,13 +21,14 @@ export default function login(
         const api = {
           // Essential methods
           getCurrentUserID: () => {
-            // @ts-ignore - Access private property ctx to get userID
-            return client.ctx?.userID || client.ctx?.i_userID || '0';
+            return client.getSession()?.userId || '0';
           },
           
           sendMessage: async (msg: any, threadId: string) => {
             // Swap arguments: old(msg, threadId) -> new(threadId, msg)
-            // Note: msg can be string or object
+            if (typeof msg === 'string') {
+                return client.sendText(threadId, msg);
+            }
             return client.sendMessage(threadId, msg);
           },
           
@@ -36,38 +37,102 @@ export default function login(
           },
           
           listenMqtt: (cb: (err: any, event: any) => void) => {
-            client.on((event: any) => {
-              cb(null, event);
+            const mapEvent = (event: any) => {
+                if (event.type === 'message') {
+                    const msg = event.message || {};
+                    return {
+                        ...msg,
+                        type: 'message',
+                        messageID: msg.messageId,
+                        threadID: msg.threadId,
+                        senderID: msg.senderId,
+                        body: msg.body,
+                        attachments: msg.attachments,
+                        timestamp: event.timestamp || msg.timestamp
+                    };
+                }
+                if (event.type === 'thread_add_participants') {
+                    return {
+                        type: 'event',
+                        logMessageType: 'log:subscribe',
+                        threadID: event.threadId,
+                        logMessageData: {
+                            addedParticipants: event.participantIds?.map((id: string) => ({ userFbId: id, fullName: 'Member' })) || []
+                        },
+                        author: event.author,
+                        timestamp: event.timestamp
+                    };
+                }
+                if (event.type === 'thread_remove_participants') {
+                    return {
+                        type: 'event',
+                        logMessageType: 'log:unsubscribe',
+                        threadID: event.threadId,
+                        logMessageData: {
+                            leftParticipantFbId: event.participantIds?.[0]
+                        },
+                        author: event.author,
+                        timestamp: event.timestamp
+                    };
+                }
+                if (event.type === 'thread_leave') {
+                     return {
+                        type: 'event',
+                        logMessageType: 'log:unsubscribe',
+                        threadID: event.threadId,
+                        logMessageData: {
+                            leftParticipantFbId: event.userId
+                        },
+                        author: event.userId,
+                        timestamp: event.timestamp
+                    };
+                }
+                return event;
+            };
+
+            const handler = (event: any) => {
+                try {
+                    const mapped = mapEvent(event);
+                    cb(null, mapped);
+                } catch (e) {
+                    console.error('Event mapping error:', e);
+                    cb(e, null);
+                }
+            };
+
+            client.on('message', handler);
+            
+            const keyEvents = [
+                'thread_add_participants', 
+                'thread_remove_participants', 
+                'thread_leave',
+                'thread_rename',
+                'thread_color',
+                'thread_emoji',
+                'message_reaction',
+                'message_unsend'
+            ];
+            
+            keyEvents.forEach(evt => {
+                // @ts-ignore
+                client.on(evt, handler);
             });
-            // Handle errors
-             // @ts-ignore
-            if (client.on) {
-                 // @ts-ignore
-                client.on('error', (err: any) => cb(err, null));
-            }
+
+            client.on('error', (err: any) => cb(err, null));
           },
           
           getThreadInfo: async (threadId: string) => {
-             // Polyfill: PanindiganClient v1.4.1 removed getThreadInfo
-             // We return a minimal object to prevent crashes
-             return {
-                 threadID: threadId,
-                 threadName: 'Group Chat', 
-                 participantIDs: [],
-                 userInfo: [],
-                 isGroup: true,
-                 // Try to fetch real name if possible?
-                 // Not easy without getThreadInfo or getThreadList overhead
-             };
+             return client.getThreadInfo(threadId);
           },
 
           getUserInfo: async (ids: string[]) => {
+            // PanindiganFCA getUserInfo takes string or string[]
+            // Returns Promise<Record<string, Profile>> for array
             return client.getUserInfo(ids);
           },
 
           getAppState: () => {
-             // @ts-ignore
-             return client.ctx?.jar?.getCookies ? client.ctx.jar.getCookies("https://www.facebook.com") : [];
+             return client.getAppState()?.cookies || [];
           },
           
           // Add explicit mappings for other common methods if needed
