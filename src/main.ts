@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import fs from 'fs';
-import login from './lib/fca-adapter.js';
+import { PanindiganFCA, type LoginOptions } from 'panindigan';
 import { BotLogger, logger } from './lib/logger.js';
 import { commandHandler } from './lib/commandHandler.js';
 import { database, initDatabase } from './database/index.js';
@@ -178,23 +178,35 @@ async function main(): Promise<void> {
   await antiNsfw.init();
   
   let appState: any = null;
-  let appStateSource = '';
+  let appStateSource: 'env' | 'file' | '' = '';
   
-  // Check for APP_STATE environment variable (Koyeb/PaaS support)
-  if (!fs.existsSync(APPSTATE_FILE) && process.env.APP_STATE) {
+  // Check for FACEBOOK_APPSTATE environment variable (PaaS support)
+  // This takes precedence over appstate.json file
+  if (process.env.FACEBOOK_APPSTATE) {
     try {
-      console.log('  [APPSTATE]        Found APP_STATE environment variable');
-      const envAppState = process.env.APP_STATE.trim();
-      // Validate JSON before writing
-      JSON.parse(envAppState);
-      fs.writeFileSync(APPSTATE_FILE, envAppState);
-      console.log('  [APPSTATE]        Created appstate.json from environment variable');
+      console.log('  [APPSTATE]        Found FACEBOOK_APPSTATE environment variable');
+      const envAppState = process.env.FACEBOOK_APPSTATE.trim();
+      
+      const parsed = JSON.parse(envAppState);
+      if (Array.isArray(parsed)) {
+        appState = { cookies: parsed };
+      } else if (parsed.cookies && Array.isArray(parsed.cookies)) {
+        appState = parsed;
+      } else {
+        appState = { cookies: parsed };
+      }
+      appStateSource = 'env';
+      console.log('  [APPSTATE]        Loaded from FACEBOOK_APPSTATE env');
+      
+      await database.saveAppstate(appState.cookies);
+      console.log('  [APPSTATE]        Synced to database');
     } catch (error) {
-      console.log('  [APPSTATE]        Error parsing/writing APP_STATE env var', error);
+      console.log('  [APPSTATE]        Error parsing FACEBOOK_APPSTATE env var', error);
     }
   }
 
-  if (fs.existsSync(APPSTATE_FILE)) {
+  // Fallback to appstate.json only if ENV is not set (legacy support)
+  if (!appState && fs.existsSync(APPSTATE_FILE)) {
     try {
       const fileContent = fs.readFileSync(APPSTATE_FILE, 'utf8');
       if (fileContent && fileContent.trim().length > 2) {
@@ -245,18 +257,97 @@ async function main(): Promise<void> {
   console.log('════════════════════ CONNECTING TO FACEBOOK ═════════════════════');
   console.log('  [LOGIN]           Attempting Facebook login...');
   
-  login({ appState: appState.cookies }, loginOptions, async (err: any, api: any) => {
-    if (err) {
-      BotLogger.error('Login failed', err);
-      console.log('  [LOGIN]           Login failed. Please check your appstate.');
-      
-      if (err?.error === 'login-approval') {
-        console.log('  [LOGIN]           Two-factor authentication required.');
-        console.log('                    Please approve the login from your phone.');
+  try {
+    const client = new PanindiganFCA(loginOptions);
+    await client.login({ appState: appState.cookies });
+
+    // Create a compatible API object
+    const api = new Proxy(client, {
+      get: (target: any, prop: string) => {
+        if (prop === 'getCurrentUserID') {
+            return () => target.getSession()?.userId || '0';
+        }
+        if (prop === 'sendMessage') {
+            return async (msg: any, threadId: string) => {
+                if (typeof msg === 'string') {
+                    return target.sendText(threadId, msg);
+                }
+                return target.sendMessage(threadId, msg);
+            };
+        }
+        if (prop === 'listenMqtt') {
+            return (cb: (err: any, event: any) => void) => {
+                const handler = (event: any) => {
+                    // Map events to legacy format
+                    let mapped = event;
+                    if (event.type === 'message') {
+                        const msg = event.message || {};
+                        mapped = {
+                            ...msg,
+                            type: 'message',
+                            messageID: msg.messageId,
+                            threadID: msg.threadId,
+                            senderID: msg.senderId,
+                            body: msg.body,
+                            attachments: msg.attachments,
+                            timestamp: event.timestamp || msg.timestamp
+                        };
+                    } else if (event.type === 'thread_add_participants') {
+                        mapped = {
+                            type: 'event',
+                            logMessageType: 'log:subscribe',
+                            threadID: event.threadId,
+                            logMessageData: {
+                                addedParticipants: event.participantIds?.map((id: string) => ({ userFbId: id, fullName: 'Member' })) || []
+                            },
+                            author: event.author,
+                            timestamp: event.timestamp
+                        };
+                    } else if (event.type === 'thread_remove_participants') {
+                        mapped = {
+                            type: 'event',
+                            logMessageType: 'log:unsubscribe',
+                            threadID: event.threadId,
+                            logMessageData: {
+                                leftParticipantFbId: event.participantIds?.[0]
+                            },
+                            author: event.author,
+                            timestamp: event.timestamp
+                        };
+                    } else if (event.type === 'thread_leave') {
+                         mapped = {
+                            type: 'event',
+                            logMessageType: 'log:unsubscribe',
+                            threadID: event.threadId,
+                            logMessageData: {
+                                leftParticipantFbId: event.userId
+                            },
+                            author: event.userId,
+                            timestamp: event.timestamp
+                        };
+                    }
+                    
+                    cb(null, mapped);
+                };
+                
+                target.on('message', handler);
+                target.on('thread_add_participants', handler);
+                target.on('thread_remove_participants', handler);
+                target.on('thread_leave', handler);
+                target.on('message_reaction', handler);
+                target.on('message_unsend', handler);
+                target.on('error', (err: any) => cb(err, null));
+            };
+        }
+        if (prop === 'getAppState') {
+             return () => target.getAppState()?.cookies || [];
+        }
+        
+        // Default behavior for other methods
+        return target[prop];
       }
-      return;
-    }
-    
+    });
+
     const currentUserId = api.getCurrentUserID ? api.getCurrentUserID() : 'unknown';
     
     let botName = 'Unknown';
@@ -323,7 +414,17 @@ async function main(): Promise<void> {
     });
     
     BotLogger.info('Message listener started successfully');
-  });
+
+  } catch (err: any) {
+      BotLogger.error('Login failed', err);
+      console.log('  [LOGIN]           Login failed. Please check your appstate.');
+      
+      if (err?.error === 'login-approval') {
+        console.log('  [LOGIN]           Two-factor authentication required.');
+        console.log('                    Please approve the login from your phone.');
+      }
+      return;
+  }
 }
 
 function normalizeId(id: any): string {
