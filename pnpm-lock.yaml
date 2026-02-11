@@ -61,8 +61,8 @@ importers:
         specifier: ^6.10.0
         version: 6.10.0(ws@8.18.3)(zod@3.25.76)
       panindigan:
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^1.0.1
+        version: 1.0.1
       pg:
         specifier: ^8.18.0
         version: 8.18.0
@@ -1345,8 +1345,8 @@ packages:
   pako@1.0.11:
     resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
 
-  panindigan@1.0.0:
-    resolution: {integrity: sha512-xoa+aBiFcuQAjRs/Nc1zFku94pdT9OLUttA1hrtdUK3LqwfC9nuZ0gUsILPfptx9q/tRnFRQfh7f0/gh3wM8cQ==}
+  panindigan@1.0.1:
+    resolution: {integrity: sha512-vr59pX3MZVg5LrHeIkBLa5XMg/k79TmwzhRFGWzAB3CbG/XbG9AQNCstArRlA9HkOUW/yI1IGOWtMsOVDzdx4w==}
     engines: {node: '>=22.0.0'}
 
   parse-bmfont-ascii@1.0.6:
@@ -3177,7 +3177,7 @@ snapshots:
 
   pako@1.0.11: {}
 
-  panindigan@1.0.0:
+  panindigan@1.0.1:
     dependencies:
       form-data: 4.0.5
       tough-cookie: 5.1.2
