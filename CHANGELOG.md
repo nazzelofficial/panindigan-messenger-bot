@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Integration**: Fully integrated with the core moderation system (`BadWordsFilter`) for consistent enforcement.
   - **Coverage**: Blocks a comprehensive list of Filipino and English profanity.
 - **Library Migration**: Replaced `panindigan-fca` with `panindigan` (new stable/remake package).
-    - **Version Update**: Updated `panindigan` to v1.0.4 (strict pinning) - fully fixed stable version with clean installation.
+    - **Version Update**: Updated `panindigan` to v1.0.6 (strict pinning) - fully fixed stable version with clean installation.
     - **Infrastructure**: Removed `fca-adapter.ts` and switched to direct `panindigan` usage via inline Proxy for better performance and maintainability.
   - **Session Management**: Added `FACEBOOK_APPSTATE` environment variable support for direct session injection, prioritizing it over `appstate.json`.
 
