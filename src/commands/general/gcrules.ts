@@ -15,7 +15,6 @@ const command: Command = {
     const rules = `🔥 PANINDIGAN GC RULES 🔥
 
 ⛔ MAHIGPIT NA BAWAL:
-• Games/Gaming topics (sa FB Group/Gamers Hub lang ito)
 • Spam, Flood, Auto-messages, Paulit-ulit na links
 • Toxic, Drama, Paninira, Pa-issue
 • Bastos, Mura, Pananakot, Disrespect
@@ -23,6 +22,7 @@ const command: Command = {
 • Dummy accounts (Real FB only)
 
 ✅ OK DITO:
+• Games/Gaming topics (sa FB Group/ at GC
 • Chill na kwentuhan at bonding
 • Respeto sa lahat (bata o matanda)
 • Natural na usapan, walang plastikan
@@ -30,6 +30,9 @@ const command: Command = {
 ⚠️ PAALALA:
 • Bawal mag-screenshot/share ng convo sa labas
 • Respeto sa privacy (iwas kulit sa DM)
+• Age Limit: 14–24 years old only
+• Kailangang ibigay ang edad upon joining para ma-set ng admin ang nickname
+• Tagalog or English only upang masigurong makasabay, makaintindi, at makapag-participate ang lahat ng miyembro
 • Admin decision is final
 
 🤖 May bot na nagbabantay. Auto-kick sa pasaway.
