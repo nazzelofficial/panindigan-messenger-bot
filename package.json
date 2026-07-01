@@ -12,17 +12,6 @@
     "lint": "eslint src/",
     "format": "prettier --write src/"
   },
-  "pnpm": {
-    "overrides": {
-      "buffer": "6.0.3",
-      "tough-cookie": "^5.1.2"
-    },
-    "onlyBuiltDependencies": [
-      "sqlite3",
-      "@ffmpeg-installer/linux-x64",
-      "esbuild"
-    ]
-  },
   "keywords": [
     "messenger",
     "userbot",
