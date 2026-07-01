@@ -3,7 +3,7 @@ import type { Command, CommandContext } from '../../types/index.js';
 const command: Command = {
   name: 'gcrules',
   aliases: ['rulespanindigan', 'panindiganrules', 'gcr'],
-  description: 'Show the Panindigan Official Messenger GC Rules (Condensed)',
+  description: 'Show the Official Panindigan GC Rules',
   category: 'general',
   usage: 'gcrules',
   examples: ['gcrules'],
@@ -12,32 +12,43 @@ const command: Command = {
   async execute(context: CommandContext): Promise<void> {
     const { reply } = context;
 
-    const rules = `🔥 PANINDIGAN GC RULES 🔥
+    const rules = `� Official Panindigan GC Rules
 
-⛔ MAHIGPIT NA BAWAL:
-• Spam, Flood, Auto-messages, Paulit-ulit na links
-• Toxic, Drama, Paninira, Pa-issue
-• Bastos, Mura, Pananakot, Disrespect
-• NSFW/18+ content (Auto-kick/ban)
-• Dummy accounts (Real FB only)
+📝 Nickname (Required)
+Age | Location
+Example: 21 | Nueva Ecija
 
-✅ OK DITO:
-• Games/Gaming topics (sa FB Group/ at GC
+⛔ BAWAL
+
+• 18+/NSFW content (videos, photos, links, etc.)
+• Spam, flood, auto-messages, paulit-ulit na links
+• Bastos, mura, away, bullying, pananakot, at anumang disrespect
+• Dummy/Fake Facebook account (Real account only)
+• Baguhin ang GC Theme, Emoji, Photo, Chat Name, o Nicknames ng iba
+• Unauthorized promotion/advertisement
+
+✅ PWEDE
+
 • Chill na kwentuhan at bonding
-• Respeto sa lahat (bata o matanda)
-• Natural na usapan, walang plastikan
+• Respeto sa lahat
+• Maghanap ng BF/GF/Best Friend/Tropa
+• Maghanap ng makakalaro (May hiwalay na Panindigan Games Zone GC)
 
-⚠️ PAALALA:
-• Bawal mag-screenshot/share ng convo sa labas
-• Respeto sa privacy (iwas kulit sa DM)
-• Age Limit: 14–24 years old only
-• Kailangang ibigay ang edad upon joining para ma-set ng admin ang nickname
-• Tagalog or English only upang masigurong makasabay, makaintindi, at makapag-participate ang lahat ng miyembro
-• Admin decision is final
+⚠️ PAALALA
 
-🤖 May bot na nagbabantay. Auto-kick sa pasaway.
+• Tagalog o English lamang para makasabay ang lahat
+• 18–25 years old only (No minors)
+• I-report agad sa Admin/Moderator ang anumang problema
 
-🔥 Panindigan ang Respeto at Good Vibes!`;
+🤖 SECURITY
+
+May sariling Panindigan Bot ang GC na nagbabantay at maaaring mag-warning, mute, kick, o ban sa mga lumalabag.
+
+🌐 Official Website: https://www.panindigan.com
+
+📘 Facebook Group: https://www.facebook.com/groups/panindigan
+
+Respect Everyone • No Drama • Enjoy & Have Fun! ❤️`;
 
     await reply(rules);
   }
