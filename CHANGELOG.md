@@ -72,6 +72,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code compatibility verified with new dependency versions
 - Docker build passes with `pnpm install --frozen-lockfile`
 - Supply-chain policy configured for newly published packages
+- Dockerfile updated to use Node.js 22-alpine and pnpm 11.9.0
+- Dockerfile now copies pnpm-workspace.yaml and .npmrc for supply-chain policy
 - No breaking changes in API usage
 
 ---

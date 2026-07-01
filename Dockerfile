@@ -2,18 +2,18 @@
 # Multi-stage build for optimized production image
 
 # Build stage
-FROM node:23-alpine AS builder
+FROM node:22-alpine AS builder
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
+RUN corepack enable && corepack prepare pnpm@11.9.0 --activate
 
 # Install build dependencies for native modules
 RUN apk add --no-cache python3 make g++ ffmpeg
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
+# Copy package files and pnpm configuration
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
@@ -25,10 +25,10 @@ COPY . .
 RUN pnpm run build
 
 # Production stage
-FROM node:23-alpine AS production
+FROM node:22-alpine AS production
 
 # Install pnpm and runtime dependencies
-RUN corepack enable && corepack prepare pnpm@10.24.0 --activate
+RUN corepack enable && corepack prepare pnpm@11.9.0 --activate
 RUN apk add --no-cache ffmpeg
 
 # Create non-root user for security
@@ -37,8 +37,8 @@ RUN addgroup -g 1001 -S nazzel && \
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
+# Copy package files and pnpm configuration
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 
 # Install production dependencies only
 RUN pnpm install --frozen-lockfile --prod
