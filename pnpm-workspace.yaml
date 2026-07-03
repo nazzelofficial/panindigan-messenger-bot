@@ -1,9 +1,6 @@
 packages:
   - '.'
 
-minimumReleaseAgeExclude:
-  - panindigan@1.1.0 || 1.1.1 || 1.2.4
-
 allowBuilds:
   core-js: true
   esbuild: true
@@ -17,3 +14,5 @@ onlyBuiltDependencies:
   - sqlite3
   - "@ffmpeg-installer/linux-x64"
   - esbuild
+
+minimumReleaseAge: 0
