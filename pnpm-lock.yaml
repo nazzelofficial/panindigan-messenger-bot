@@ -61,8 +61,8 @@ importers:
         specifier: ^4.83.0
         version: 4.104.0(ws@8.21.0)(zod@3.25.76)
       panindigan:
-        specifier: 1.2.5
-        version: 1.2.5
+        specifier: 1.2.6
+        version: 1.2.6
       pg:
         specifier: ^8.13.1
         version: 8.22.0
@@ -96,7 +96,7 @@ importers:
         version: 10.0.0
       tsx:
         specifier: ^4.19.2
-        version: 4.22.5
+        version: 4.23.0
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
@@ -1403,8 +1403,8 @@ packages:
   pako@1.0.11:
     resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
 
-  panindigan@1.2.5:
-    resolution: {integrity: sha512-LiR1y/hjKtK7+zdfvSrbVsWVARu2LxPVGj1dW/8wgkScWyZqmgQiZ5BAVB+6n7Dgv0fVPK9IyY75yCttoW1A+w==}
+  panindigan@1.2.6:
+    resolution: {integrity: sha512-DpnAZK1z7JNgkNVUfZ734bs9/w0QZQpVW2lk/YCLrVXzY5sESYUuSeEFMZ3nRbBjy8cKH3PeCL9PdweCbEgDAg==}
     engines: {node: '>=22.0.0'}
 
   parse-bmfont-ascii@1.0.6:
@@ -1722,8 +1722,8 @@ packages:
     resolution: {integrity: sha512-aZbgViZrg1QNcG+LULa7nhZpJTZSLm/mXnHXnbAbjmN5aSa0y7V+wvv6+4WaBtpISJzThKy+PIPxc1Nq1EJ9mg==}
     engines: {node: '>= 14.0.0'}
 
-  tsx@4.22.5:
-    resolution: {integrity: sha512-F7JnSfPl5ASt6LqwWyUQ3T8BwN3q0eQEbFMYa2iRWaVQmmudo0d7fRmwM4O002gsvW1bs0yBYioutsAjqLJMvQ==}
+  tsx@4.23.0:
+    resolution: {integrity: sha512-eUdUIaCr963q2h5u3+QwvYp0+eqPvn+egeqZUm0hwERCqqx1E3kK5ehbGCvqSE5MQAULr67ww0cA3jKc3YkM1w==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -3324,7 +3324,7 @@ snapshots:
 
   pako@1.0.11: {}
 
-  panindigan@1.2.5:
+  panindigan@1.2.6:
     dependencies:
       form-data: 4.0.6
       tough-cookie: 5.1.2
@@ -3681,7 +3681,7 @@ snapshots:
 
   triple-beam@1.4.1: {}
 
-  tsx@4.22.5:
+  tsx@4.23.0:
     dependencies:
       esbuild: 0.28.1
     optionalDependencies:
