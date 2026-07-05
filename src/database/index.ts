@@ -1,4 +1,5 @@
-import { Pool, PoolClient, QueryResult } from 'pg';
+import { Pool } from 'pg';
+import type { PoolClient, QueryResult } from 'pg';
 import NodeCache from 'node-cache';
 import { logger } from '../lib/logger.js';
 import * as os from 'os';

@@ -1,4 +1,5 @@
-import express, { Express, Request, Response, NextFunction } from 'express';
+import express from 'express';
+import type { Express, Request, Response, NextFunction } from 'express';
 import path from 'path';
 import { BotLogger, logger } from '../lib/logger.js';
 import { database } from '../database/index.js';
