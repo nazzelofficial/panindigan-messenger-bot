@@ -10,6 +10,8 @@
     "outDir": "./dist",
 
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+
     "paths": {
       "@/*": ["src/*"],
       "@commands/*": ["src/commands/*"],
@@ -23,6 +25,9 @@
 
     "strict": true,
 
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
@@ -32,6 +37,8 @@
     "sourceMap": true,
 
     "incremental": true,
+    "tsBuildInfoFile": "./node_modules/.cache/tsbuildinfo",
+
     "noEmit": false,
 
     "skipLibCheck": true,
@@ -43,6 +50,13 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false
   },
-  "include": ["src/**/*"],
-  "exclude": ["dist", "node_modules"]
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
 }
