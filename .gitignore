@@ -13,6 +13,7 @@ dist/
 
 # Sensitive data
 *.session
+*.appstate.json
 
 # Logs
 logs/
