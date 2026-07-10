@@ -180,33 +180,8 @@ async function main(): Promise<void> {
   let appState: any = null;
   let appStateSource: 'env' | 'file' | '' = '';
   
-  // Check for FACEBOOK_APPSTATE environment variable (PaaS support)
-  // This takes precedence over appstate.json file
-  if (process.env.FACEBOOK_APPSTATE) {
-    try {
-      console.log('  [APPSTATE]        Found FACEBOOK_APPSTATE environment variable');
-      const envAppState = process.env.FACEBOOK_APPSTATE.trim();
-      
-      const parsed = JSON.parse(envAppState);
-      if (Array.isArray(parsed)) {
-        appState = parsed;
-      } else if (parsed.cookies && Array.isArray(parsed.cookies)) {
-        appState = parsed.cookies;
-      } else {
-        appState = parsed;
-      }
-      appStateSource = 'env';
-      console.log('  [APPSTATE]        Loaded from FACEBOOK_APPSTATE env');
-      
-      await database.saveAppstate(appState);
-      console.log('  [APPSTATE]        Synced to database');
-    } catch (error) {
-      console.log('  [APPSTATE]        Error parsing FACEBOOK_APPSTATE env var', error);
-    }
-  }
-
-  // Fallback to appstate.json only if ENV is not set (legacy support)
-  if (!appState && fs.existsSync(APPSTATE_FILE)) {
+  // Load appstate from file
+  if (fs.existsSync(APPSTATE_FILE)) {
     try {
       const fileContent = fs.readFileSync(APPSTATE_FILE, 'utf8');
       if (fileContent && fileContent.trim().length > 2) {
@@ -229,8 +204,8 @@ async function main(): Promise<void> {
     } catch (error) {
       console.log('  [APPSTATE]        Error loading from file');
     }
-  } else if (!appState) {
-    console.log('  [APPSTATE]        Not found in database or file');
+  } else {
+    console.log('  [APPSTATE]        appstate.json not found');
   }
   
   if (!appState || !Array.isArray(appState) || appState.length === 0) {

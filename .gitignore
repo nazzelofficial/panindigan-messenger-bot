@@ -12,7 +12,6 @@ dist/
 .env.*.local
 
 # Sensitive data
-appstate.json
 *.session
 
 # Logs
