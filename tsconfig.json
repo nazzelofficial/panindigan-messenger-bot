@@ -9,15 +9,13 @@
     "rootDir": "./src",
     "outDir": "./dist",
 
-    "baseUrl": ".",
-
     "paths": {
-      "@/*": ["src/*"],
-      "@commands/*": ["src/commands/*"],
-      "@lib/*": ["src/lib/*"],
-      "@utils/*": ["src/utils/*"],
-      "@config/*": ["src/config/*"],
-      "@database/*": ["src/database/*"]
+      "@/*": ["./src/*"],
+      "@commands/*": ["./src/commands/*"],
+      "@lib/*": ["./src/lib/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@config/*": ["./src/config/*"],
+      "@database/*": ["./src/database/*"]
     },
 
     "types": ["node"],
