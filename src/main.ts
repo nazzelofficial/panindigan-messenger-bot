@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import fs from 'fs';
-import { PanindiganFCA, type LoginOptions } from 'panindigan';
+import { createClient } from 'panindigan-fca';
 import { BotLogger, logger } from './lib/logger.js';
 import { commandHandler } from './lib/commandHandler.js';
 import { database, initDatabase } from './database/index.js';
@@ -189,16 +189,16 @@ async function main(): Promise<void> {
       
       const parsed = JSON.parse(envAppState);
       if (Array.isArray(parsed)) {
-        appState = { cookies: parsed };
-      } else if (parsed.cookies && Array.isArray(parsed.cookies)) {
         appState = parsed;
+      } else if (parsed.cookies && Array.isArray(parsed.cookies)) {
+        appState = parsed.cookies;
       } else {
-        appState = { cookies: parsed };
+        appState = parsed;
       }
       appStateSource = 'env';
       console.log('  [APPSTATE]        Loaded from FACEBOOK_APPSTATE env');
       
-      await database.saveAppstate(appState.cookies);
+      await database.saveAppstate(appState);
       console.log('  [APPSTATE]        Synced to database');
     } catch (error) {
       console.log('  [APPSTATE]        Error parsing FACEBOOK_APPSTATE env var', error);
@@ -212,16 +212,16 @@ async function main(): Promise<void> {
       if (fileContent && fileContent.trim().length > 2) {
         const parsed = JSON.parse(fileContent);
         if (Array.isArray(parsed)) {
-          appState = { cookies: parsed };
-        } else if (parsed.cookies && Array.isArray(parsed.cookies)) {
           appState = parsed;
+        } else if (parsed.cookies && Array.isArray(parsed.cookies)) {
+          appState = parsed.cookies;
         } else {
-          appState = { cookies: parsed };
+          appState = parsed;
         }
         appStateSource = 'file';
         console.log('  [APPSTATE]        Loaded from file');
         
-        await database.saveAppstate(appState.cookies);
+        await database.saveAppstate(appState);
         console.log('  [APPSTATE]        Synced to database');
       } else {
         console.log('  [APPSTATE]        File exists but is empty');
@@ -233,19 +233,7 @@ async function main(): Promise<void> {
     console.log('  [APPSTATE]        Not found in database or file');
   }
   
-  const loginOptions = {
-    selfListen: config.bot.selfListen,
-    listenEvents: config.bot.listenEvents,
-    updatePresence: true,
-    autoMarkRead: config.bot.autoMarkRead,
-    autoMarkDelivery: config.bot.autoMarkDelivery,
-    forceLogin: true,
-    online: true,
-    autoReconnect: true,
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-  };
-  
-  if (!appState || !appState.cookies || appState.cookies.length === 0) {
+  if (!appState || !Array.isArray(appState) || appState.length === 0) {
     console.log('═══════════════════════ WARNING ════════════════════════════════');
     console.log('  No valid appstate found.');
     console.log('  Please provide a valid appstate.json file with Facebook cookies.');
@@ -258,123 +246,27 @@ async function main(): Promise<void> {
   console.log('  [LOGIN]           Attempting Facebook login...');
   
   try {
-    const client = new PanindiganFCA(loginOptions);
-    await client.login({ appState: appState.cookies });
+    const client = await createClient({ appState });
+    await client.connect();
 
-    // Create a compatible API object
-    const api = new Proxy(client, {
-      get: (target: any, prop: string) => {
-        if (prop === 'getCurrentUserID') {
-            return () => target.getSession()?.userId || '0';
-        }
-        if (prop === 'sendMessage') {
-            return async (msg: any, threadId: string) => {
-                if (typeof msg === 'string') {
-                    return target.sendText(threadId, msg);
-                }
-                return target.sendMessage(threadId, msg);
-            };
-        }
-        if (prop === 'listenMqtt') {
-            return (cb: (err: any, event: any) => void) => {
-                const handler = (event: any) => {
-                    // Map events to legacy format
-                    let mapped = event;
-                    if (event.type === 'message') {
-                        const msg = event.message || {};
-                        mapped = {
-                            ...msg,
-                            type: 'message',
-                            messageID: msg.messageId,
-                            threadID: msg.threadId,
-                            senderID: msg.senderId,
-                            body: msg.body,
-                            attachments: msg.attachments,
-                            timestamp: event.timestamp || msg.timestamp
-                        };
-                    } else if (event.type === 'thread_add_participants') {
-                        mapped = {
-                            type: 'event',
-                            logMessageType: 'log:subscribe',
-                            threadID: event.threadId,
-                            logMessageData: {
-                                addedParticipants: event.participantIds?.map((id: string) => ({ userFbId: id, fullName: 'Member' })) || []
-                            },
-                            author: event.author,
-                            timestamp: event.timestamp
-                        };
-                    } else if (event.type === 'thread_remove_participants') {
-                        mapped = {
-                            type: 'event',
-                            logMessageType: 'log:unsubscribe',
-                            threadID: event.threadId,
-                            logMessageData: {
-                                leftParticipantFbId: event.participantIds?.[0]
-                            },
-                            author: event.author,
-                            timestamp: event.timestamp
-                        };
-                    } else if (event.type === 'thread_leave') {
-                         mapped = {
-                            type: 'event',
-                            logMessageType: 'log:unsubscribe',
-                            threadID: event.threadId,
-                            logMessageData: {
-                                leftParticipantFbId: event.userId
-                            },
-                            author: event.userId,
-                            timestamp: event.timestamp
-                        };
-                    }
-                    
-                    cb(null, mapped);
-                };
-                
-                target.on('message', handler);
-                target.on('thread_add_participants', handler);
-                target.on('thread_remove_participants', handler);
-                target.on('thread_leave', handler);
-                target.on('message_reaction', handler);
-                target.on('message_unsend', handler);
-                target.on('error', (err: any) => cb(err, null));
-            };
-        }
-        if (prop === 'getAppState') {
-             return () => target.getAppState()?.cookies || [];
-        }
-        
-        // Default behavior for other methods
-        return target[prop];
+    // Listen for appstate updates (cookie refresh)
+    client.on('appstate:update', async (updatedAppState) => {
+      try {
+        fs.writeFileSync(APPSTATE_FILE, JSON.stringify(updatedAppState, null, 2));
+        await database.saveAppstate(updatedAppState);
+        console.log('  [APPSTATE]        Updated and saved');
+      } catch (error) {
+        console.log('  [APPSTATE]        Failed to save updated appstate');
       }
     });
 
-    const currentUserId = api.getCurrentUserID ? api.getCurrentUserID() : 'unknown';
-    
-    let botName = 'Unknown';
-    try {
-      if (api.getUserInfo) {
-        const userInfo = await api.getUserInfo([currentUserId]);
-        botName = userInfo[currentUserId]?.name || 'Unknown';
-      }
-    } catch (error) {}
+    const self = await client.users.getSelf();
+    const currentUserId = self.id;
+    const botName = self.name || 'Unknown';
     
     console.log('═════════════════════ LOGIN SUCCESSFUL ═════════════════════════');
     console.log(`  [ACCOUNT]         ${botName}`);
     console.log(`  [USER ID]         ${currentUserId}`);
-    
-    try {
-      if (api.getAppState) {
-        const newAppState = api.getAppState();
-        if (newAppState && newAppState.length > 0) {
-          fs.writeFileSync(APPSTATE_FILE, JSON.stringify(newAppState, null, 2));
-          
-          const dbSaved = await database.saveAppstate(newAppState);
-          console.log(`  [APPSTATE]        Saved to ${dbSaved ? 'file and database' : 'file only'}`);
-        }
-      }
-    } catch (error) {
-      console.log('  [APPSTATE]        Failed to save');
-    }
     
     console.log('══════════════════════ BOT INFORMATION ═════════════════════════');
     console.log(`  [NAME]            ${config.bot.name}`);
@@ -390,18 +282,21 @@ async function main(): Promise<void> {
     console.log('  [FEATURES]        Maintenance mode available');
     console.log('═════════════════════════════════════════════════════════════════');
     
-    api.listenMqtt(async (err: any, event: any) => {
-      if (err) {
-        BotLogger.error('Listen error', err);
-        return;
-      }
-      
-      if (!event) {
-        return;
-      }
-      
+    // Message event handler
+    client.on('message', async (event) => {
       try {
-        await handleEvent(api, event);
+        // Map new event format to legacy format for compatibility
+        const legacyEvent = {
+          type: 'message',
+          messageID: event.messageId,
+          threadID: event.threadId,
+          senderID: event.senderId,
+          body: event.body || '',
+          attachments: event.attachments || [],
+          timestamp: event.timestamp,
+          isGroup: event.isGroup,
+        };
+        await handleEvent(client, legacyEvent, currentUserId);
       } catch (error) {
         BotLogger.error('Event handling error', error);
         await database.logEntry({
@@ -412,17 +307,50 @@ async function main(): Promise<void> {
         });
       }
     });
+
+    // Thread participant added event
+    client.on('thread:participant:added', async (event) => {
+      try {
+        const legacyEvent = {
+          type: 'event',
+          logMessageType: 'log:subscribe',
+          threadID: event.threadId,
+          logMessageData: {
+            addedParticipants: [{ userFbId: event.addedUserId, fullName: 'Member' }]
+          },
+          author: event.addedByUserId,
+          timestamp: new Date(),
+        };
+        await handleEvent(client, legacyEvent, currentUserId);
+      } catch (error) {
+        BotLogger.error('Event handling error', error);
+      }
+    });
+
+    // Thread participant removed event
+    client.on('thread:participant:removed', async (event) => {
+      try {
+        const legacyEvent = {
+          type: 'event',
+          logMessageType: 'log:unsubscribe',
+          threadID: event.threadId,
+          logMessageData: {
+            leftParticipantFbId: event.removedUserId
+          },
+          author: event.removedByUserId,
+          timestamp: new Date(),
+        };
+        await handleEvent(client, legacyEvent, currentUserId);
+      } catch (error) {
+        BotLogger.error('Event handling error', error);
+      }
+    });
     
     BotLogger.info('Message listener started successfully');
 
   } catch (err: any) {
       BotLogger.error('Login failed', err);
       console.log('  [LOGIN]           Login failed. Please check your appstate.');
-      
-      if (err?.error === 'login-approval') {
-        console.log('  [LOGIN]           Two-factor authentication required.');
-        console.log('                    Please approve the login from your phone.');
-      }
       return;
   }
 }
@@ -432,7 +360,7 @@ function normalizeId(id: any): string {
   return ('' + id).trim();
 }
 
-async function handleEvent(api: any, event: any): Promise<void> {
+async function handleEvent(api: any, event: any, currentUserId?: string): Promise<void> {
   if (event.threadID) event.threadID = normalizeId(event.threadID);
   if (event.senderID) event.senderID = normalizeId(event.senderID);
   if (event.userID) event.userID = normalizeId(event.userID);
@@ -451,7 +379,7 @@ async function handleEvent(api: any, event: any): Promise<void> {
   switch (event.type) {
     case 'message':
     case 'message_reply':
-      await handleMessage(api, event);
+      await handleMessage(api, event, currentUserId);
       break;
       
     case 'event':
@@ -470,12 +398,12 @@ async function handleEvent(api: any, event: any): Promise<void> {
   }
 }
 
-async function handleMessage(api: any, event: any): Promise<void> {
+async function handleMessage(api: any, event: any, currentUserId?: string): Promise<void> {
   const body = event.body || '';
   const threadId = String(event.threadID);
   const senderId = String(event.senderID);
   const messageId = String(event.messageID || '');
-  const currentUserId = String(api.getCurrentUserID());
+  const userId = currentUserId || (await api.users.getSelf()).id;
   
   const hasAttachments = event.attachments && event.attachments.length > 0;
   if (!body.trim() && !hasAttachments) return;
@@ -492,7 +420,7 @@ async function handleMessage(api: any, event: any): Promise<void> {
      BotLogger.warn(`Thread persistence failed for ${threadId}. Database might be disconnected.`);
   }
   
-  const isSelfMessage = senderId === currentUserId;
+  const isSelfMessage = senderId === userId;
   const thread = await database.getThread(threadId);
   const customPrefix = thread?.prefix || prefix;
   
@@ -528,22 +456,22 @@ async function handleMessage(api: any, event: any): Promise<void> {
         try {
           // Attempt to unsend the message immediately
           if (messageId) {
-             await api.unsendMessage(messageId);
+             await api.messages.unsend(messageId);
              BotLogger.info(`NSFW Auto-Mod: Unsent message ${messageId} in ${threadId}`);
           }
 
-          await api.sendMessage(
-            `⚠️ Restricted content detected. This message has been automatically removed.`,
-            threadId
-          );
+          await api.messages.send({
+            threadId,
+            body: `⚠️ Restricted content detected. This message has been automatically removed.`
+          });
         } catch (e) {
           BotLogger.error('Failed to unsend NSFW message', e);
           try {
              // Fallback notification if unsend fails (likely due to permissions)
-             await api.sendMessage(
-               `⚠️ Restricted content detected.\n\n❌ I could not unsend the message. Please ensure I am a Group Admin.`,
-               threadId
-             );
+             await api.messages.send({
+               threadId,
+               body: `⚠️ Restricted content detected.\n\n❌ I could not unsend the message. Please ensure I am a Group Admin.`
+             });
           } catch(err) {}
         }
         
@@ -572,7 +500,7 @@ async function handleMessage(api: any, event: any): Promise<void> {
       // This enforces the "block" behavior
       if (messageId) {
         try {
-          await api.unsendMessage(messageId);
+          await api.messages.unsend(messageId);
         } catch (e) {
           BotLogger.warn(`Failed to unsend bad word message in ${threadId}`);
         }
@@ -580,10 +508,10 @@ async function handleMessage(api: any, event: any): Promise<void> {
 
       if (settings.action === 'warn' && detection.message) {
         try {
-          await api.sendMessage(
-            `${detection.message}\n\nWarning ${warnings}/3 - Further violations may result in action.`,
-            threadId
-          );
+          await api.messages.send({
+            threadId,
+            body: `${detection.message}\n\nWarning ${warnings}/3 - Further violations may result in action.`
+          });
         } catch (e) {}
       }
       
@@ -609,7 +537,10 @@ async function handleMessage(api: any, event: any): Promise<void> {
       const hasNotified = maintenanceData.notifiedGroups.includes(threadId);
       if (!hasNotified) {
         try {
-          await api.sendMessage(maintenance.generateMaintenanceMessage(maintenanceData), threadId);
+          await api.messages.send({
+            threadId,
+            body: maintenance.generateMaintenanceMessage(maintenanceData)
+          });
           await maintenance.addNotifiedGroup(threadId);
         } catch (e) {}
       }
@@ -629,19 +560,22 @@ async function handleMessage(api: any, event: any): Promise<void> {
         
         let messageContent: any;
         if (typeof message === 'string') {
-          messageContent = message;
+          messageContent = { body: message };
         } else {
           messageContent = { ...message };
           if (messageContent.body) messageContent.body = String(messageContent.body);
         }
         
         try {
-          const messageInfo = await api.sendMessage(messageContent, targetThread);
+          const messageInfo = await api.messages.send({
+            threadId: targetThread,
+            ...messageContent
+          });
           
-          if (messageInfo?.messageID) {
+          if (messageInfo?.messageId) {
             const botMessagesKey = `bot_messages_${targetThread}`;
             const storedMessages = await database.getSetting<string[]>(botMessagesKey) || [];
-            storedMessages.push(messageInfo.messageID);
+            storedMessages.push(messageInfo.messageId);
             if (storedMessages.length > 100) {
               storedMessages.splice(0, storedMessages.length - 100);
             }
@@ -695,8 +629,8 @@ async function handleXP(api: any, senderId: string, threadId: string): Promise<v
   
   if (result?.leveledUp) {
     try {
-      const userInfo = await api.getUserInfo(senderIdStr);
-      const userName = userInfo[senderIdStr]?.name || 'User';
+      const userInfo = await api.users.getProfile(senderIdStr);
+      const userName = userInfo.name || 'User';
       
       const levelUpMessage = `🎉 LEVEL UP!
 ━━━━━━━━━━━━━━━
@@ -705,7 +639,10 @@ async function handleXP(api: any, senderId: string, threadId: string): Promise<v
 ━━━━━━━━━━━━━━━`;
       
       try {
-        await api.sendMessage(levelUpMessage, threadIdStr);
+        await api.messages.send({
+          threadId: threadIdStr,
+          body: levelUpMessage
+        });
       } catch (err) {}
     } catch (error) {}
   }
@@ -735,7 +672,10 @@ async function handleGroupEvent(api: any, event: any): Promise<void> {
             userName
           );
           
-          await api.sendMessage(welcomeMessage, threadIdStr);
+          await api.messages.send({
+            threadId: threadIdStr,
+            body: welcomeMessage
+          });
           
           await database.logEntry({
             type: 'event',
@@ -764,8 +704,8 @@ async function handleGroupEvent(api: any, event: any): Promise<void> {
       try {
         let userName = 'Member';
         try {
-          const userInfo = await api.getUserInfo(leftUser);
-          userName = userInfo[leftUser]?.name || 'Member';
+          const userInfo = await api.users.getProfile(leftUser);
+          userName = userInfo.name || 'Member';
         } catch (e) {}
         
         const leaveMessage = await eventHandler.generateProfessionalLeave(
@@ -775,7 +715,10 @@ async function handleGroupEvent(api: any, event: any): Promise<void> {
           userName
         );
         
-        await api.sendMessage(leaveMessage, threadIdStr);
+        await api.messages.send({
+          threadId: threadIdStr,
+          body: leaveMessage
+        });
         
         await database.logEntry({
           type: 'event',
@@ -793,15 +736,18 @@ async function handleGroupEvent(api: any, event: any): Promise<void> {
     if (antiLeaveEnabled && leftUser) {
       BotLogger.info(`Anti-leave triggered: Adding ${leftUser} back to ${threadIdStr}`);
       try {
-        await api.addUserToGroup(leftUser, threadIdStr);
+        await api.threads.addParticipants(threadIdStr, [leftUser]);
         
-        const userInfo = await api.getUserInfo(leftUser);
-        const userName = userInfo[leftUser]?.name || 'Member';
+        const userInfo = await api.users.getProfile(leftUser);
+        const userName = userInfo.name || 'Member';
         
-        await api.sendMessage(`🔄 ANTI-LEAVE
+        await api.messages.send({
+          threadId: threadIdStr,
+          body: `🔄 ANTI-LEAVE
 ━━━━━━━━━━━━━━━
 ✅ ${userName} added back
-━━━━━━━━━━━━━━━`, threadIdStr);
+━━━━━━━━━━━━━━━`
+        });
         
         await database.logEntry({
           type: 'event',
