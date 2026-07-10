@@ -180,8 +180,33 @@ async function main(): Promise<void> {
   let appState: any = null;
   let appStateSource: 'env' | 'file' | '' = '';
   
-  // Load appstate from file
-  if (fs.existsSync(APPSTATE_FILE)) {
+  // Check for APPSTATE environment variable (PaaS support)
+  // This takes precedence over appstate.json file
+  if (process.env.APPSTATE) {
+    try {
+      console.log('  [APPSTATE]        Found APPSTATE environment variable');
+      const envAppState = process.env.APPSTATE.trim();
+      
+      const parsed = JSON.parse(envAppState);
+      if (Array.isArray(parsed)) {
+        appState = parsed;
+      } else if (parsed.cookies && Array.isArray(parsed.cookies)) {
+        appState = parsed.cookies;
+      } else {
+        appState = parsed;
+      }
+      appStateSource = 'env';
+      console.log('  [APPSTATE]        Loaded from APPSTATE env');
+      
+      await database.saveAppstate(appState);
+      console.log('  [APPSTATE]        Synced to database');
+    } catch (error) {
+      console.log('  [APPSTATE]        Error parsing APPSTATE env var', error);
+    }
+  }
+
+  // Fallback to appstate.json only if ENV is not set (development support)
+  if (!appState && fs.existsSync(APPSTATE_FILE)) {
     try {
       const fileContent = fs.readFileSync(APPSTATE_FILE, 'utf8');
       if (fileContent && fileContent.trim().length > 2) {
@@ -204,8 +229,8 @@ async function main(): Promise<void> {
     } catch (error) {
       console.log('  [APPSTATE]        Error loading from file');
     }
-  } else {
-    console.log('  [APPSTATE]        appstate.json not found');
+  } else if (!appState) {
+    console.log('  [APPSTATE]        Not found in environment or file');
   }
   
   if (!appState || !Array.isArray(appState) || appState.length === 0) {
@@ -280,44 +305,6 @@ async function main(): Promise<void> {
           message: `Event handling error: ${error instanceof Error ? error.message : 'Unknown'}`,
           metadata: { error: String(error) },
         });
-      }
-    });
-
-    // Thread participant added event
-    client.on('thread:participant:added', async (event) => {
-      try {
-        const legacyEvent = {
-          type: 'event',
-          logMessageType: 'log:subscribe',
-          threadID: event.threadId,
-          logMessageData: {
-            addedParticipants: [{ userFbId: event.addedUserId, fullName: 'Member' }]
-          },
-          author: event.addedByUserId,
-          timestamp: new Date(),
-        };
-        await handleEvent(client, legacyEvent, currentUserId);
-      } catch (error) {
-        BotLogger.error('Event handling error', error);
-      }
-    });
-
-    // Thread participant removed event
-    client.on('thread:participant:removed', async (event) => {
-      try {
-        const legacyEvent = {
-          type: 'event',
-          logMessageType: 'log:unsubscribe',
-          threadID: event.threadId,
-          logMessageData: {
-            leftParticipantFbId: event.removedUserId
-          },
-          author: event.removedByUserId,
-          timestamp: new Date(),
-        };
-        await handleEvent(client, legacyEvent, currentUserId);
-      } catch (error) {
-        BotLogger.error('Event handling error', error);
       }
     });
     
