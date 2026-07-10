@@ -61,8 +61,8 @@ importers:
         specifier: ^4.83.0
         version: 4.104.0(ws@8.21.0)(zod@3.25.76)
       panindigan-fca:
-        specifier: 0.1.2
-        version: 0.1.2
+        specifier: 0.1.3
+        version: 0.1.3
       pg:
         specifier: ^8.13.1
         version: 8.22.0
@@ -1497,8 +1497,8 @@ packages:
   pako@1.0.11:
     resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
 
-  panindigan-fca@0.1.2:
-    resolution: {integrity: sha512-In1q86HTMv2+0ClU7dPf7gD234tkAjfYElWrrwwwQBeHu0RsewBkMNobxAfgVD0wDPV9EG4Vkow4fzBnvapLAQ==}
+  panindigan-fca@0.1.3:
+    resolution: {integrity: sha512-zep+EIO80Dwh/Slxik+FV5kG8uv316aMNvOfPTz1jHriVv0CIgGZIW/aLEOrAAZ8zLpL5B8ptR+omUq+KiknLQ==}
     engines: {bun: '>=1.3.14', node: '>=22'}
 
   parse-bmfont-ascii@1.0.6:
@@ -3551,7 +3551,7 @@ snapshots:
 
   pako@1.0.11: {}
 
-  panindigan-fca@0.1.2:
+  panindigan-fca@0.1.3:
     dependencies:
       colorette: 2.0.20
       date-fns: 4.4.0
