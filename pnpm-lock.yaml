@@ -61,8 +61,8 @@ importers:
         specifier: ^4.83.0
         version: 4.104.0(ws@8.21.0)(zod@3.25.76)
       panindigan-fca:
-        specifier: 0.1.7
-        version: 0.1.7
+        specifier: 0.1.8
+        version: 0.1.8
       pg:
         specifier: ^8.13.1
         version: 8.22.0
@@ -1493,8 +1493,8 @@ packages:
   pako@1.0.11:
     resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
 
-  panindigan-fca@0.1.7:
-    resolution: {integrity: sha512-zrRwqo2OwnH34/rfKCBVQ+ey3xGPAsHiz3nXDfY9b8nRZoVscDCOh/jQqmkTuZgYhpZRpq8+o9SXLGaf16Dm4w==}
+  panindigan-fca@0.1.8:
+    resolution: {integrity: sha512-vl/JYcV8E4my90w8S3Ti9oBiMQFTxBxn5ghfZ/7/CWMa5PYe/NaqaP4NlY/nzZnoDb0d9M2QlUKT6gsKxSmbRA==}
     engines: {bun: '>=1.3.14', node: '>=22'}
 
   parse-bmfont-ascii@1.0.6:
@@ -1911,8 +1911,8 @@ packages:
   unzipper@0.12.5:
     resolution: {integrity: sha512-tXYOi9R57Uj/2Z25SOs5RRSzq886MBQj2gY8dPL+xl/kv6s6SvByoKfAtvfVeEuhntWDgjd2o9p2lb4TVPAz0A==}
 
-  user-agents@2.1.117:
-    resolution: {integrity: sha512-xcPO6YyvH1IRemUvcPshwPNb1KFYnjeDtyydVvTNEVarlV+DjT+iOqjvttPTZCUZKvu7qjx9kk4F4Ulpy6ZlNg==}
+  user-agents@2.1.118:
+    resolution: {integrity: sha512-5i8Ew3dzlJgktal1icK0LDo/ByOqgj80cj5iPkYaxw82ebb2SG9P42ObB6Z9YsguEOOFmWokjhgjFwj1lJ6AAg==}
     engines: {node: '>=18'}
 
   utif2@4.1.0:
@@ -3543,7 +3543,7 @@ snapshots:
 
   pako@1.0.11: {}
 
-  panindigan-fca@0.1.7:
+  panindigan-fca@0.1.8:
     dependencies:
       colorette: 2.0.20
       date-fns: 4.4.0
@@ -3561,7 +3561,7 @@ snapshots:
       socks: 2.8.9
       tough-cookie: 5.1.2
       undici: 8.7.0
-      user-agents: 2.1.117
+      user-agents: 2.1.118
       uuid: 14.0.1
       ws: 8.21.0
       zod: 4.4.3
@@ -4021,7 +4021,7 @@ snapshots:
       graceful-fs: 4.2.11
       node-int64: 0.4.0
 
-  user-agents@2.1.117: {}
+  user-agents@2.1.118: {}
 
   utif2@4.1.0:
     dependencies:
