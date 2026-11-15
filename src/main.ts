@@ -197,11 +197,6 @@ async function main(): Promise<void> {
       }
       appStateSource = 'env';
       console.log('  [APPSTATE]        Loaded from APPSTATE env');
-
-      const synced = await database.saveAppstate(appState);
-      if (!synced) {
-        console.log('  [APPSTATE]        Not synced to database (DB unavailable or save failed)');
-      }
     } catch (error) {
       console.log('  [APPSTATE]        Error parsing APPSTATE env var', error);
     }
@@ -222,11 +217,6 @@ async function main(): Promise<void> {
         }
         appStateSource = 'file';
         console.log('  [APPSTATE]        Loaded from file');
-
-        const synced = await database.saveAppstate(appState);
-        if (!synced) {
-          console.log('  [APPSTATE]        Not synced to database (DB unavailable or save failed)');
-        }
       } else {
         console.log('  [APPSTATE]        File exists but is empty');
       }
@@ -316,6 +306,13 @@ async function main(): Promise<void> {
     currentUserId = loginResult.userId;
     if (loginResult.restored) {
       console.log('  [APPSTATE]        Restored persisted session (panindigan-session)');
+    }
+
+    // Sync the appstate to the database only after a successful login,
+    // connected to the actual persistence result of the session.
+    const synced = await database.saveAppstate(appState);
+    if (!synced) {
+      console.log('  [APPSTATE]        Not synced to database (DB unavailable or save failed)');
     }
 
     const self = await client.users.getSelf();
