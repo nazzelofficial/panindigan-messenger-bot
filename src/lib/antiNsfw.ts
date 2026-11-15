@@ -74,9 +74,76 @@ export class AntiNsfw {
     }
   }
 
-  private async downloadImage(url: string): Promise<Buffer | null> {
+  // Detection-result cache: avoids re-downloading the same (often viral)
+  // image across threads/groups. Entries expire after 10 minutes, capped at 128.
+  private detectionCache = new Map<string, { result: NsfwDetectionResult; expires: number }>();
+  private static readonly DETECTION_CACHE_TTL_MS = 10 * 60 * 1000;
+  private static readonly DETECTION_CACHE_MAX = 128;
+
+  private cacheDetection(key: string, result: NsfwDetectionResult): void {
+    if (this.detectionCache.size >= AntiNsfw.DETECTION_CACHE_MAX) {
+      const oldest = this.detectionCache.keys().next().value;
+      if (oldest !== undefined) this.detectionCache.delete(oldest);
+    }
+    this.detectionCache.set(key, { result, expires: Date.now() + AntiNsfw.DETECTION_CACHE_TTL_MS });
+  }
+
+  private cachedDetection(key: string): NsfwDetectionResult | null {
+    const entry = this.detectionCache.get(key);
+    if (!entry) return null;
+    if (Date.now() > entry.expires) {
+      this.detectionCache.delete(key);
+      return null;
+    }
+    return entry.result;
+  }
+
+  /**
+   * Fetches an image for the NSFW check.
+   *
+   * Prefers the authenticated, browser-consistent path (the automate client's
+   * session: Chrome UA, cookies, realistic headers) over bare axios, which
+   * otherwise emits a trivially bot-shaped request (`axios/x.y` UA, no
+   * cookies/headers) that Facebook flags as bot traffic — especially from
+   * datacenter IPs (Render, etc.). Falls back to a browser-like raw request
+   * only when the session path is unavailable.
+   */
+  private async fetchImage(
+    target: { id?: string; url?: string | null },
+    api?: any,
+  ): Promise<Buffer | null> {
+    const raw = api?.raw;
+    if (raw && typeof raw.downloadAttachment === 'function' && target.id) {
+      try {
+        const buffer: Buffer = await raw.downloadAttachment(String(target.id));
+        if (buffer && buffer.length) return buffer;
+      } catch (error) {
+        BotLogger.debug(
+          `NSFW: session download failed for attachment ${target.id}, falling back to HTTP: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+    }
+
+    if (!target.url) return null;
+
     try {
-      const response = await axios.get(url, { responseType: 'arraybuffer' });
+      const response = await axios.get(target.url, {
+        responseType: 'arraybuffer',
+        timeout: 15000,
+        maxContentLength: 5 * 1024 * 1024,
+        maxBodyLength: 5 * 1024 * 1024,
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',
+          Accept: 'image/avif,image/webp,image/png,image/jpeg,image/*,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Sec-Fetch-Site': 'cross-site',
+          'Sec-Fetch-Mode': 'no-cors',
+          'Sec-Fetch-Dest': 'image',
+        },
+      });
       return Buffer.from(response.data);
     } catch (error) {
       BotLogger.error('Failed to download image for NSFW check', error);
@@ -133,10 +200,25 @@ export class AntiNsfw {
     }
   }
 
-  async checkImage(url: string): Promise<NsfwDetectionResult> {
-    const buffer = await this.downloadImage(url);
-    if (!buffer) return { detected: false, type: 'clean', severity: 'low' };
-    return this.checkSkinTone(buffer);
+  async checkImage(
+    target: string | { id?: string; url?: string | null },
+    api?: any,
+  ): Promise<NsfwDetectionResult> {
+    const normalized = typeof target === 'string' ? { url: target } : target;
+    const key = normalized.id ? `id:${normalized.id}` : normalized.url ? `url:${normalized.url}` : null;
+
+    if (key) {
+      const cached = this.cachedDetection(key);
+      if (cached) return cached;
+    }
+
+    const buffer = await this.fetchImage(normalized, api);
+    const result = buffer
+      ? await this.checkSkinTone(buffer)
+      : { detected: false, type: 'clean' as const, severity: 'low' as const };
+
+    if (key) this.cacheDetection(key, result);
+    return result;
   }
 
   async checkVideo(url: string): Promise<NsfwDetectionResult> {
@@ -145,7 +227,7 @@ export class AntiNsfw {
      return { detected: false, type: 'clean', severity: 'low' };
   }
 
-  async checkContent(event: any): Promise<NsfwDetectionResult> {
+  async checkContent(event: any, api?: any): Promise<NsfwDetectionResult> {
     if (!event.attachments || !Array.isArray(event.attachments) || event.attachments.length === 0) {
       return { detected: false, type: 'clean', severity: 'low' };
     }
@@ -154,12 +236,12 @@ export class AntiNsfw {
       const type = attachment.type;
       const url = attachment.url || attachment.previewUrl;
 
-      if (!url) continue;
+      if (!url && !attachment.id) continue;
 
       if (type === 'photo' || type === 'image' || type === 'animated_image') {
-        const result = await this.checkImage(url);
+        const result = await this.checkImage({ id: attachment.id, url }, api);
         if (result.detected) return result;
-      } 
+      }
       // Video check omitted for now to save resources/prevent false positives without FFmpeg
     }
 

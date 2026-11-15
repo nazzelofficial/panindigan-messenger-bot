@@ -753,7 +753,12 @@ export class Database {
         logger.warn('Attempted to save empty appstate, skipping');
         return false;
       }
-      await this.setSetting('appstate', appstate);
+      const saved = await this.setSetting('appstate', appstate);
+      if (!saved) {
+        // setSetting already logged the reason; don't claim success.
+        return false;
+      }
+      console.log('  [APPSTATE]        Synced to database');
       return true;
     } catch (error) {
       logger.error('Failed to save appstate to database', { error });

@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 #### Messenger Library Migration — panindigan-fca → panindigan-automate
-- **Library Migration**: Replaced `panindigan-fca` with `panindigan-automate@^0.1.2` (the rewritten, strictly-typed Messenger client: promise-based API, MQTT Sync Protocol v11, typed events).
+- **Library Migration**: Replaced `panindigan-fca` with `panindigan-automate@^0.1.3` (the rewritten, strictly-typed Messenger client: promise-based API, MQTT Sync Protocol v11, typed events).
   - New compatibility adapter `src/lib/automationClient.ts` wraps `MessengerClient` and re-exposes the legacy surface used by the commands (`api.sendMessage`, `api.getThreadInfo`, `api.getUserInfo`, `api.getThreadList`, `api.getCurrentUserID`, `api.changeNickname`, `api.setTitle`, `api.changeThreadColor`, `api.changeThreadEmoji`, `api.changeAdminStatus`, `api.addUserToGroup`, `api.removeUserFromGroup`) and the namespaced surface used by `main.ts` (`api.messages.send/unsend`, `api.users.getSelf/getProfile`, `api.threads.addParticipants`).
   - `main.ts` now registers `message`, `message_reply`, `event` (join/leave, mapped from `participant_join`/`participant_leave`), `error`, `warning`, `disconnect` and `reconnect` listeners BEFORE `connect()`; login resolves via `MessengerClient.login()`, which also restores the persisted session.
   - Reply commands now work correctly: `message_reply` events carry `messageReply` with the replied-to message (sender, body, attachments) resolved best-effort via `getMessages()`.
@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Admin verification**: panindigan-automate does not expose thread admin lists (`threadInfo.adminIDs` is always `[]`), so `lib/permissions.ts` falls back to the configured admin list for locked-group/admin checks instead of failing closed for everyone.
 - **Theme command**: `settheme` now maps theme names to the official Messenger color palette (hex), the only values accepted by panindigan-automate's color mutation. Numeric Facebook theme IDs are no longer supported.
 - **tough-cookie override**: bumped to `^6.1.0` to match panindigan-automate's requirement (applies to both `package.json` and `pnpm-workspace.yaml` overrides).
+- **NSFW downloads**: the anti-NSFW check no longer fetches image attachments with bare axios (`axios/x.y` UA, no cookies/headers — a trivially bot-shaped request that Facebook classifies as bot traffic, especially from datacenter IPs like Render). It now downloads via the automate client's authenticated session (Chrome UA, cookies, realistic headers) with a browser-like raw fallback, and caches detection results per attachment/URL for 10 minutes to avoid re-fetching the same image across groups.
+  - Residual risk: a hosted bot on datacenter IPs still looks more bot-like to Facebook regardless of headers. For hosted deployments, prefer a residential proxy (`PANINDIGAN_HTTP_PROXY`) or leave `antinsfw` disabled (it is opt-in per group).
 
 ### Removed
 - **fca-config.json**: Dead configuration for the removed panindigan-fca dependency (panindigan-automate does not read it; runtime options are passed via `ClientOptions` / `PANINDIGAN_*` environment variables).

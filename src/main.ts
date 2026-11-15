@@ -197,9 +197,11 @@ async function main(): Promise<void> {
       }
       appStateSource = 'env';
       console.log('  [APPSTATE]        Loaded from APPSTATE env');
-      
-      await database.saveAppstate(appState);
-      console.log('  [APPSTATE]        Synced to database');
+
+      const synced = await database.saveAppstate(appState);
+      if (!synced) {
+        console.log('  [APPSTATE]        Not synced to database (DB unavailable or save failed)');
+      }
     } catch (error) {
       console.log('  [APPSTATE]        Error parsing APPSTATE env var', error);
     }
@@ -220,9 +222,11 @@ async function main(): Promise<void> {
         }
         appStateSource = 'file';
         console.log('  [APPSTATE]        Loaded from file');
-        
-        await database.saveAppstate(appState);
-        console.log('  [APPSTATE]        Synced to database');
+
+        const synced = await database.saveAppstate(appState);
+        if (!synced) {
+          console.log('  [APPSTATE]        Not synced to database (DB unavailable or save failed)');
+        }
       } else {
         console.log('  [APPSTATE]        File exists but is empty');
       }
@@ -440,7 +444,7 @@ async function handleMessage(api: any, event: any, currentUserId?: string): Prom
   if (!isSelfMessage && hasAttachments) {
     const isNsfwEnabled = await antiNsfw.isEnabled(threadId);
     if (isNsfwEnabled) {
-      const nsfwCheck = await antiNsfw.checkContent(event);
+      const nsfwCheck = await antiNsfw.checkContent(event, api);
       if (nsfwCheck.detected) {
         try {
           // Attempt to unsend the message immediately
