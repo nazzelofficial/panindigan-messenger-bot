@@ -212,7 +212,7 @@ docker run -d --env-file .env nazzel-bot
 
 - Use a test/secondary Facebook account
 - Keep `appstate.json` and `panindigan-session/` private and secure
-- **Hosted deployments (Render, Railway, etc.)**: Facebook trivially classifies datacenter IPs as bot traffic. The anti-NSFW image check downloads via the bot's authenticated session and caches results, but it is still extra requests from a datacenter IP — keep `antinsfw` off unless you need it, or route traffic through a residential proxy via `PANINDIGAN_HTTP_PROXY`
+- **Hosted deployments (Render, Railway, etc.)**: Facebook trivially classifies datacenter IPs as bot traffic. When `PANINDIGAN_HTTP_PROXY` (residential proxy) is set, **zero direct Facebook requests are made** — the automate transports *and* every raw fetch (image commands, anti-NSFW fallback, attachment URLs) go through it; Facebook hosts fail closed without it. Regardless, keep `antinsfw` off unless you need it.
 - Music downloads from YouTube may violate their Terms of Service
 - The bot has built-in rate limiting to prevent spam
 

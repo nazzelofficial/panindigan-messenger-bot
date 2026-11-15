@@ -2,7 +2,7 @@ import { database } from '../database/index.js';
 import { BotLogger } from './logger.js';
 import config from '../../config.json' with { type: 'json' };
 import { Jimp } from 'jimp';
-import axios from 'axios';
+import { proxyFetchBuffer } from './proxyFetch.js';
 
 export interface NsfwDetectionResult {
   detected: boolean;
@@ -102,11 +102,11 @@ export class AntiNsfw {
    * Fetches an image for the NSFW check.
    *
    * Prefers the authenticated, browser-consistent path (the automate client's
-   * session: Chrome UA, cookies, realistic headers) over bare axios, which
-   * otherwise emits a trivially bot-shaped request (`axios/x.y` UA, no
-   * cookies/headers) that Facebook flags as bot traffic — especially from
-   * datacenter IPs (Render, etc.). Falls back to a browser-like raw request
-   * only when the session path is unavailable.
+   * session: Chrome UA, cookies, realistic headers) over a raw request —
+   * bare Facebook requests from a datacenter IP get the account flagged as
+   * bot traffic. The raw fallback goes through `proxyFetchBuffer`, which is
+   * proxied when `PANINDIGAN_HTTP_PROXY` is set and fails closed for Facebook
+   * hosts otherwise — never a direct Facebook request.
    */
   private async fetchImage(
     target: { id?: string; url?: string | null },
@@ -128,27 +128,11 @@ export class AntiNsfw {
 
     if (!target.url) return null;
 
-    try {
-      const response = await axios.get(target.url, {
-        responseType: 'arraybuffer',
-        timeout: 15000,
-        maxContentLength: 5 * 1024 * 1024,
-        maxBodyLength: 5 * 1024 * 1024,
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',
-          Accept: 'image/avif,image/webp,image/png,image/jpeg,image/*,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.9',
-          'Sec-Fetch-Site': 'cross-site',
-          'Sec-Fetch-Mode': 'no-cors',
-          'Sec-Fetch-Dest': 'image',
-        },
-      });
-      return Buffer.from(response.data);
-    } catch (error) {
-      BotLogger.error('Failed to download image for NSFW check', error);
-      return null;
+    const buffer = await proxyFetchBuffer(target.url, { timeoutMs: 15_000, maxBytes: 5 * 1024 * 1024 });
+    if (!buffer) {
+      BotLogger.debug('NSFW: fallback fetch failed or blocked (direct Facebook fetch not allowed)');
     }
+    return buffer;
   }
 
   // Simple Skin Tone Detection Algorithm (Non-AI)

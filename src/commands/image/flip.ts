@@ -1,5 +1,5 @@
 import { Jimp } from 'jimp';
-import axios from 'axios';
+import { proxyFetchBuffer } from '../../lib/proxyFetch.js';
 import { Readable } from 'node:stream';
 import type { Command, CommandContext } from '../../types/index.js';
 
@@ -24,8 +24,11 @@ export const command: Command = {
     try {
       await reply('🔄 Flipping image... Please wait.');
       
-      const response = await axios.get(attachment.url, { responseType: 'arraybuffer' });
-      const image = await Jimp.read(Buffer.from(response.data));
+      const imageBuffer = await proxyFetchBuffer(attachment.url ?? '');
+      if (!imageBuffer) {
+        return reply('❌ Could not download the image. Try again later or use a fresh image link.');
+      }
+      const image = await Jimp.read(imageBuffer);
 
       image.flip({ horizontal: false, vertical: true });
 

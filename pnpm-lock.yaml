@@ -66,6 +66,9 @@ importers:
       pg:
         specifier: ^8.23.1
         version: 8.23.1
+      undici:
+        specifier: ^8.12.4
+        version: 8.12.4
       unzipper:
         specifier: ^0.12.5
         version: 0.12.5

@@ -39,7 +39,6 @@
  *     lookup fails the reply event only carries `messageReply.messageID`.
  */
 
-import axios from 'axios';
 import { MessengerClient } from 'panindigan-automate';
 import type {
   MessageEvent,
@@ -49,6 +48,7 @@ import type {
   ThreadInfo,
 } from 'panindigan-automate';
 import { BotLogger } from './logger.js';
+import { proxyFetchBuffer } from './proxyFetch.js';
 
 // ---------------------------------------------------------------------------
 // Legacy event mapping
@@ -240,8 +240,13 @@ export function createAutomationClient(options: AutomationClientOptions) {
     }
 
     for (const url of toArray<string>(opts.url)) {
-      const response = await axios.get(String(url), { responseType: 'arraybuffer', timeout: 60_000 });
-      result = await client.sendAttachment(targetThread, Buffer.from(response.data));
+      // Proxied when PANINDIGAN_HTTP_PROXY is set; Facebook URLs fail closed
+      // (never fetched directly from this host).
+      const buffer = await proxyFetchBuffer(String(url), { timeoutMs: 60_000, maxBytes: 20 * 1024 * 1024 });
+      if (!buffer) {
+        throw new Error('messages.send: could not fetch attachment URL (blocked or unreachable)');
+      }
+      result = await client.sendAttachment(targetThread, buffer);
     }
 
     if (opts.sticker) {

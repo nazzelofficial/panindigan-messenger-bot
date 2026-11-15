@@ -34,7 +34,12 @@ export const command: Command = {
         return;
       }
 
-      const avatarUrl = `https://graph.facebook.com/${targetId}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
+      const avatarUrl = user.photoUrl;
+
+      if (!avatarUrl) {
+        await reply('❌ Profile picture not available for this user.');
+        return;
+      }
 
       await reply(`📷 *Profile Picture*\n\n👤 Name: ${user.name}\n🔗 Link: ${avatarUrl}`);
     } catch (error) {
