@@ -1,6 +1,6 @@
 import type { Command, CommandContext } from '../../types/index.js';
 import { BotLogger } from '../../lib/logger.js';
-import { safeGetThreadInfo, safeGetUserInfo } from '../../lib/apiHelpers.js';
+import { safeGetThreadInfo, safeGetUserInfo, botGroupAdminStatus } from '../../lib/apiHelpers.js';
 
 const command: Command = {
   name: 'promote',
@@ -51,13 +51,15 @@ Could not fetch group info. Please try again.`);
       const adminIDs = (threadInfo.adminIDs || []).map((a: any) => String(a.id || a));
       const participantIDs = (threadInfo.participantIDs || []).map((id: any) => String(id));
 
-      if (!adminIDs.includes(botId)) {
+      const isBotAdmin = botGroupAdminStatus(threadInfo, botId);
+      if (isBotAdmin === false) {
         await reply(`┏━━━━━━━━━━━━━━━━━━━━━┓
 ┃  ❌ NO PERMISSION
 ┗━━━━━━━━━━━━━━━━━━━━━┛
 Bot must be admin to promote users.`);
         return;
       }
+      // null → admin list unavailable (panindigan-automate): proceed, Facebook enforces permissions
 
       if (!participantIDs.includes(targetId)) {
         await reply(`┏━━━━━━━━━━━━━━━━━━━┓

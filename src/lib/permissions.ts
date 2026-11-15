@@ -38,16 +38,24 @@ export async function canExecuteAdminCommand(
 
   try {
     const threadInfo = await api.getThreadInfo(threadId);
-    const threadAdminIds = (threadInfo.adminIDs || []).map((a: any) => String(a.id || a).trim());
+    const threadAdminIds = (threadInfo?.adminIDs || []).map((a: any) => String(a.id || a).trim()).filter(Boolean);
+
+    // panindigan-automate does not expose thread admin lists (`adminIDs` is
+    // always empty). Fall back to the configured admin list when group admin
+    // status cannot be verified. Owners are already allowed above.
+    if (threadAdminIds.length === 0) {
+      return { allowed: inAdminList, ...(inAdminList ? {} : { reason: 'cannot_verify_group_admin' }) };
+    }
+
     const isGroupAdmin = isThreadAdmin(userId, threadAdminIds);
-    
+
     if (!isGroupAdmin) {
       return { allowed: false, reason: 'not_group_admin' };
     }
 
     return { allowed: true };
   } catch (error) {
-    return { allowed: false, reason: 'cannot_verify_group_admin' };
+    return { allowed: inAdminList, ...(inAdminList ? {} : { reason: 'cannot_verify_group_admin' }) };
   }
 }
 
@@ -64,8 +72,9 @@ export async function canAccessLockedGroup(
   if (!inAdminList) {
     try {
       const threadInfo = await api.getThreadInfo(threadId);
-      const threadAdminIds = (threadInfo.adminIDs || []).map((a: any) => String(a.id || a).trim());
-      return isThreadAdmin(userId, threadAdminIds);
+      const threadAdminIds = (threadInfo?.adminIDs || []).map((a: any) => String(a.id || a).trim()).filter(Boolean);
+      // Automate cannot verify group admins (adminIDs is empty) → deny.
+      return threadAdminIds.length > 0 && isThreadAdmin(userId, threadAdminIds);
     } catch {
       return false;
     }
@@ -73,10 +82,13 @@ export async function canAccessLockedGroup(
 
   try {
     const threadInfo = await api.getThreadInfo(threadId);
-    const threadAdminIds = (threadInfo.adminIDs || []).map((a: any) => String(a.id || a).trim());
+    const threadAdminIds = (threadInfo?.adminIDs || []).map((a: any) => String(a.id || a).trim()).filter(Boolean);
+    // Automate cannot verify group admins (adminIDs is empty) →
+    // trust the configured admin list.
+    if (threadAdminIds.length === 0) return true;
     return isThreadAdmin(userId, threadAdminIds);
   } catch {
-    return false;
+    return true; // In admin list but verification failed — locked groups stay usable by admins.
   }
 }
 

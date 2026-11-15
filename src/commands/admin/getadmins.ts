@@ -36,9 +36,9 @@ const command: Command = {
       const adminIDs = (threadInfo.adminIDs || []).map((a: any) => a.id || a);
       
       if (adminIDs.length === 0) {
-        await reply(`${decorations.fire} 『 NO ADMINS 』
+        await reply(`${decorations.fire} 『 ADMINS UNAVAILABLE 』
 ═══════════════════════════
-ℹ️ This group has no admins`);
+⚠️ The group admin list is unavailable right now (the Messenger API does not expose it), so admins cannot be listed`);
         return;
       }
       

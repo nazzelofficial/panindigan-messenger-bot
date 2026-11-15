@@ -22,7 +22,7 @@ const command: Command = {
 🔖 Version: ${config.bot.version}
 
 📚 Libraries Used:
-• panindigan-fca (Messenger API)
+• panindigan-automate (Messenger API)
 • PostgreSQL (Database)
 • OpenAI (AI Features)
 • FFmpeg (Audio Processing)

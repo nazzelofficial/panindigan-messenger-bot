@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.13.0] - 2026-11-15
+
+### Changed
+
+#### Messenger Library Migration — panindigan-fca → panindigan-automate
+- **Library Migration**: Replaced `panindigan-fca` with `panindigan-automate@^0.1.2` (the rewritten, strictly-typed Messenger client: promise-based API, MQTT Sync Protocol v11, typed events).
+  - New compatibility adapter `src/lib/automationClient.ts` wraps `MessengerClient` and re-exposes the legacy surface used by the commands (`api.sendMessage`, `api.getThreadInfo`, `api.getUserInfo`, `api.getThreadList`, `api.getCurrentUserID`, `api.changeNickname`, `api.setTitle`, `api.changeThreadColor`, `api.changeThreadEmoji`, `api.changeAdminStatus`, `api.addUserToGroup`, `api.removeUserFromGroup`) and the namespaced surface used by `main.ts` (`api.messages.send/unsend`, `api.users.getSelf/getProfile`, `api.threads.addParticipants`).
+  - `main.ts` now registers `message`, `message_reply`, `event` (join/leave, mapped from `participant_join`/`participant_leave`), `error`, `warning`, `disconnect` and `reconnect` listeners BEFORE `connect()`; login resolves via `MessengerClient.login()`, which also restores the persisted session.
+  - Reply commands now work correctly: `message_reply` events carry `messageReply` with the replied-to message (sender, body, attachments) resolved best-effort via `getMessages()`.
+- **Session persistence**: panindigan-automate refreshes and persists session cookies itself (default `./panindigan-session`, gitignored). The `appstate:update` handler was removed — updated cookies are no longer written back to `appstate.json`/`appstate` in the database; the persisted automate session is preferred over the supplied appstate on the next login.
+- **Admin verification**: panindigan-automate does not expose thread admin lists (`threadInfo.adminIDs` is always `[]`), so `lib/permissions.ts` falls back to the configured admin list for locked-group/admin checks instead of failing closed for everyone.
+- **Theme command**: `settheme` now maps theme names to the official Messenger color palette (hex), the only values accepted by panindigan-automate's color mutation. Numeric Facebook theme IDs are no longer supported.
+- **tough-cookie override**: bumped to `^6.1.0` to match panindigan-automate's requirement (applies to both `package.json` and `pnpm-workspace.yaml` overrides).
+
+### Removed
+- **fca-config.json**: Dead configuration for the removed panindigan-fca dependency (panindigan-automate does not read it; runtime options are passed via `ClientOptions` / `PANINDIGAN_*` environment variables).
+
 ## [2.12.5] - 2026-07-01
 
 ### Changed

@@ -1,6 +1,6 @@
 import type { Command, CommandContext } from '../../types/index.js';
 import { BotLogger } from '../../lib/logger.js';
-import { safeGetThreadInfo } from '../../lib/apiHelpers.js';
+import { safeGetThreadInfo, botGroupAdminStatus } from '../../lib/apiHelpers.js';
 
 const command: Command = {
   name: 'gcname',
@@ -50,16 +50,17 @@ Could not fetch group info. Please try again.`);
         return;
       }
       
-      const adminIDs = (threadInfo.adminIDs || []).map((a: any) => String(a.id || a));
       const oldName = threadInfo.threadName || 'Unknown';
 
-      if (!adminIDs.includes(botId)) {
+      const isBotAdmin = botGroupAdminStatus(threadInfo, botId);
+      if (isBotAdmin === false) {
         await reply(`┏━━━━━━━━━━━━━━━━━━━━━┓
 ┃  ❌ NO PERMISSION
 ┗━━━━━━━━━━━━━━━━━━━━━┛
 Bot must be admin to change group name.`);
         return;
       }
+      // null → admin list unavailable (panindigan-automate): proceed, Facebook enforces permissions
 
       await api.setTitle(newName, threadId);
 

@@ -37,7 +37,8 @@ nazzel-messenger-userbot/
 ├── logs/                   # Log files
 ├── music/                  # Downloaded music files (temporary)
 ├── config.json             # Bot configuration
-├── appstate.json           # Facebook session (auto-generated)
+├── appstate.json           # Facebook session cookies (input)
+├── panindigan-session/     # Refreshed session managed by panindigan-automate (gitignored)
 ├── package.json            # Dependencies
 ├── tsconfig.json           # TypeScript configuration
 └── drizzle.config.ts       # Database migration config
@@ -64,15 +65,19 @@ pnpm install
 
 3. Set up environment variables:
 ```bash
-# Required for Facebook login (if no appstate.json)
-FB_EMAIL=your_email@example.com
-FB_PASSWORD=your_password
+# Optional: AppState JSON (takes precedence over appstate.json file)
+APPSTATE=[{"key":"c_user","value":"..."}, ...]
 
 # Optional: Owner ID for admin commands
 OWNER_ID=your_facebook_id
 
 # Optional: Redis URL for caching
 REDIS_URL=redis://localhost:6379
+
+# Optional: panindigan-automate tuning (see docs: PANINDIGAN_LOG_LEVEL,
+# PANINDIGAN_SESSION_DIR, PANINDIGAN_PERSIST_SESSION, PANINDIGAN_HTTP_PROXY, ...)
+PANINDIGAN_LOG_LEVEL=warn
+PANINDIGAN_SESSION_DIR=./panindigan-session
 
 # Database (auto-configured in Replit)
 DATABASE_URL=postgresql://...
@@ -90,12 +95,13 @@ pnpm start
 
 ### Using AppState
 
-For better security and to avoid login issues:
+The bot authenticates with exported Facebook session cookies only (no email/password login):
 
 1. Log in to Facebook in a browser
 2. Export your cookies as `appstate.json` using a browser extension
-3. Place `appstate.json` in the project root
-4. The bot will use this instead of email/password
+3. Place `appstate.json` in the project root (or set the `APPSTATE` env var with the same JSON)
+4. The bot logs in with those cookies
+5. panindigan-automate refreshes the session cookies in the background and persists them to `./panindigan-session/` (gitignored). On subsequent starts the persisted session is preferred, so you don't need to re-export cookies. Delete `panindigan-session/` to force a fresh login from `appstate.json`/`APPSTATE`.
 
 ## Configuration
 
@@ -205,7 +211,7 @@ docker run -d --env-file .env nazzel-bot
 ⚠️ **Warning**: This is a user-bot that automates a personal Facebook account. Facebook may flag or ban accounts that violate their Terms of Service. Use responsibly and at your own risk.
 
 - Use a test/secondary Facebook account
-- Keep `appstate.json` private and secure
+- Keep `appstate.json` and `panindigan-session/` private and secure
 - Music downloads from YouTube may violate their Terms of Service
 - The bot has built-in rate limiting to prevent spam
 

@@ -1,5 +1,6 @@
 import type { Command, CommandContext } from '../../types/index.js';
 import { safeGetThreadInfo } from '../../lib/apiHelpers.js';
+import { isInAdminList } from '../../lib/permissions.js';
 import config from '../../../config.json' with { type: 'json' };
 import { database } from '../../database/index.js';
 
@@ -55,12 +56,14 @@ const command: Command = {
     
     const isOwner = ownerId && senderId === ownerId;
     
-    let isAdmin = false;
-    try {
-      const threadInfo = await safeGetThreadInfo(api, threadId);
-      const adminIds = threadInfo.adminIDs?.map((a: any) => String(a.id)) || [];
-      isAdmin = adminIds.includes(senderId);
-    } catch (e) {}
+    let isAdmin = isInAdminList(senderId);
+    if (!isAdmin) {
+      try {
+        const threadInfo = await safeGetThreadInfo(api, threadId);
+        const adminIds = threadInfo.adminIDs?.map((a: any) => String(a.id)) || [];
+        isAdmin = adminIds.includes(senderId);
+      } catch (e) {}
+    }
     
     if (!isOwner && !isAdmin) {
       await reply(`┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓

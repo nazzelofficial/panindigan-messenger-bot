@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import fs from 'fs';
-import { createClient } from 'panindigan-fca';
-import { BotLogger, logger } from './lib/logger.js';
+import { createAutomationClient } from './lib/automationClient.js';
+import { BotLogger } from './lib/logger.js';
 import { commandHandler } from './lib/commandHandler.js';
 import { database, initDatabase } from './database/index.js';
 import { redis } from './lib/redis.js';
@@ -21,7 +21,7 @@ const prefix = config.bot.prefix;
 const recentEvents = new Map<string, number>();
 const EVENT_DEBOUNCE_MS = 30000;
 
-// Message deduplication to prevent duplicate processing (FCA may emit same message twice)
+// Message deduplication to prevent duplicate processing (Messenger may emit the same message twice)
 const processedMessages = new Map<string, number>();
 const MESSAGE_DEBOUNCE_MS = 5000;
 let lastCleanup = Date.now();
@@ -244,26 +244,79 @@ async function main(): Promise<void> {
   
   console.log('════════════════════ CONNECTING TO FACEBOOK ═════════════════════');
   console.log('  [LOGIN]           Attempting Facebook login...');
-  
-  try {
-    const client = await createClient({ appState });
-    await client.connect();
 
-    // Listen for appstate updates (cookie refresh)
-    client.on('appstate:update', async (updatedAppState) => {
+  try {
+    // panindigan-automate does not emit 'appstate:update' — it refreshes and
+    // persists the session cookies itself (default: ./panindigan-session),
+    // preferring the persisted jar over this appstate on subsequent logins.
+    const client = createAutomationClient({ appState });
+
+    // Register event listeners BEFORE login: panindigan-automate starts the
+    // realtime transport during login() and emits events as soon as it is up.
+    let currentUserId = '';
+
+    // Message event handler
+    client.on('message', async (event) => {
       try {
-        fs.writeFileSync(APPSTATE_FILE, JSON.stringify(updatedAppState, null, 2));
-        await database.saveAppstate(updatedAppState);
-        console.log('  [APPSTATE]        Updated and saved');
+        await handleEvent(client, event, currentUserId || undefined);
       } catch (error) {
-        console.log('  [APPSTATE]        Failed to save updated appstate');
+        BotLogger.error('Event handling error', error);
+        await database.logEntry({
+          type: 'error',
+          level: 'error',
+          message: `Event handling error: ${error instanceof Error ? error.message : 'Unknown'}`,
+          metadata: { error: String(error) },
+        });
       }
     });
 
+    // Quoted-reply messages arrive as a dedicated event in panindigan-automate.
+    client.on('message_reply', async (event) => {
+      try {
+        await handleEvent(client, event, currentUserId || undefined);
+      } catch (err) {
+        BotLogger.error('Reply event handling error', err);
+        await database.logEntry({
+          type: 'error',
+          level: 'error',
+          message: `Reply event handling error: ${err instanceof Error ? err.message : 'Unknown'}`,
+          metadata: { error: String(err) },
+        });
+      }
+    });
+
+    // Group join/leave events (mapped to legacy 'event' payloads by the adapter)
+    client.on('event', async (event) => {
+      try {
+        await handleEvent(client, event, currentUserId || undefined);
+      } catch (error) {
+        BotLogger.error('Group event handling error', error);
+      }
+    });
+
+    // Background connection issues surface as events, not rejected promises.
+    client.on('error', (event) => {
+      BotLogger.error('panindigan-automate client error', event?.error ?? event);
+    });
+    client.on('warning', (event) => {
+      BotLogger.warn(`panindigan-automate warning: ${event?.message ?? event}`);
+    });
+    client.on('disconnect', (event) => {
+      BotLogger.error(`panindigan-automate realtime connection lost: ${event?.reason ?? 'unknown'} (attempts: ${event?.attempts ?? '?'})`);
+    });
+    client.on('reconnect', (event) => {
+      BotLogger.info(`panindigan-automate reconnected (attempt ${event?.attempt ?? '?'}, drained ${event?.drained ?? 0} queued packets)`);
+    });
+
+    const loginResult = await client.connect();
+    currentUserId = loginResult.userId;
+    if (loginResult.restored) {
+      console.log('  [APPSTATE]        Restored persisted session (panindigan-session)');
+    }
+
     const self = await client.users.getSelf();
-    const currentUserId = self.id;
     const botName = self.name || 'Unknown';
-    
+
     console.log('═════════════════════ LOGIN SUCCESSFUL ═════════════════════════');
     console.log(`  [ACCOUNT]         ${botName}`);
     console.log(`  [USER ID]         ${currentUserId}`);
@@ -281,33 +334,7 @@ async function main(): Promise<void> {
     console.log('  [FEATURES]        Bad words filter ready');
     console.log('  [FEATURES]        Maintenance mode available');
     console.log('═════════════════════════════════════════════════════════════════');
-    
-    // Message event handler
-    client.on('message', async (event) => {
-      try {
-        // Map new event format to legacy format for compatibility
-        const legacyEvent = {
-          type: 'message',
-          messageID: event.messageId,
-          threadID: event.threadId,
-          senderID: event.senderId,
-          body: event.body || '',
-          attachments: event.attachments || [],
-          timestamp: event.timestamp,
-          isGroup: event.isGroup,
-        };
-        await handleEvent(client, legacyEvent, currentUserId);
-      } catch (error) {
-        BotLogger.error('Event handling error', error);
-        await database.logEntry({
-          type: 'error',
-          level: 'error',
-          message: `Event handling error: ${error instanceof Error ? error.message : 'Unknown'}`,
-          metadata: { error: String(error) },
-        });
-      }
-    });
-    
+
     BotLogger.info('Message listener started successfully');
 
   } catch (err: any) {
@@ -370,7 +397,7 @@ async function handleMessage(api: any, event: any, currentUserId?: string): Prom
   const hasAttachments = event.attachments && event.attachments.length > 0;
   if (!body.trim() && !hasAttachments) return;
   
-  // Check for duplicate message (FCA may emit same message twice as message + message_reply)
+  // Check for duplicate message (Messenger may emit the same message twice as message + message_reply)
   if (messageId && isMessageDuplicate(messageId)) {
     BotLogger.debug(`Duplicate message ignored: ${messageId}`);
     return;

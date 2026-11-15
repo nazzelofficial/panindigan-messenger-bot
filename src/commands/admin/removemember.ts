@@ -1,6 +1,6 @@
 import type { Command, CommandContext } from '../../types/index.js';
 import { BotLogger } from '../../lib/logger.js';
-import { safeGetThreadInfo, safeGetUserInfo } from '../../lib/apiHelpers.js';
+import { safeGetThreadInfo, safeGetUserInfo, botGroupAdminStatus } from '../../lib/apiHelpers.js';
 
 const command: Command = {
   name: 'removemember',
@@ -60,9 +60,9 @@ Cannot remove yourself or the bot!`);
     
     try {
       const threadInfo = await safeGetThreadInfo(api, threadId);
-      const adminIDs = (threadInfo?.adminIDs || []).map((a: any) => String(a.id || a));
-      
-      if (!adminIDs.includes(botId)) {
+      const isBotAdmin = botGroupAdminStatus(threadInfo, botId);
+
+      if (isBotAdmin === false) {
         await reply(`┏━━━━━━━━━━━━━━━━━━━━━┓
 ┃  ❌ NO PERMISSION
 ┗━━━━━━━━━━━━━━━━━━━━━┛
@@ -70,6 +70,7 @@ Bot must be admin to remove members.
 Please make bot admin first.`);
         return;
       }
+      // null → admin list unavailable (panindigan-automate): proceed, Facebook enforces permissions
       
       if (validTargets.length > 1) {
         await reply(`┏━━━━━━━━━━━━━━━━━━━━━┓

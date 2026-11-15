@@ -8,7 +8,7 @@ allowBuilds:
 
 overrides:
   buffer: 6.0.3
-  tough-cookie: ^5.1.2
+  tough-cookie: ^6.1.0
 
 onlyBuiltDependencies:
   - sqlite3

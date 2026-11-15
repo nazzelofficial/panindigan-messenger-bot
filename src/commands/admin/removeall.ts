@@ -1,5 +1,5 @@
 import type { Command, CommandContext } from '../../types/index.js';
-import { safeGetThreadInfo } from '../../lib/apiHelpers.js';
+import { safeGetThreadInfo, botGroupAdminStatus } from '../../lib/apiHelpers.js';
 import { BotLogger } from '../../lib/logger.js';
 
 const command: Command = {
@@ -64,12 +64,13 @@ Could not fetch member list. Group may be too large.`);
         return;
       }
       
-      if (!adminIDs.includes(botId)) {
+      // Mass-kick must fail closed: without an admin list, admins cannot be protected.
+      const isBotAdmin = botGroupAdminStatus(threadInfo, botId);
+      if (isBotAdmin !== true) {
         await reply(`┏━━━━━━━━━━━━━━━━━━━┓
-┃  ❌ NO PERMISSION
+┃  ❌ CANNOT VERIFY ADMINS
 ┗━━━━━━━━━━━━━━━━━━━┛
-Bot must be admin to kick members!
-💡 Make bot admin first.`);
+${isBotAdmin === false ? 'Bot must be admin to kick members.\nPlease make bot admin first.' : 'Group admin list is unavailable\n(panindigan-automate), so admins cannot be protected.\nUse the kick command for single members instead.'}`);
         return;
       }
     } catch (e: any) {

@@ -39,7 +39,7 @@ export const command: Command = {
       const adminIDs = threadInfo.adminIDs || [];
       
       if (adminIDs.length === 0) {
-        await reply('ℹ️ This group has no administrators.');
+        await reply('⚠️ The group admin list is unavailable right now (the Messenger API does not expose it), so admins cannot be listed.');
         return;
       }
 

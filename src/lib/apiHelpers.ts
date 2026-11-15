@@ -39,6 +39,27 @@ export async function safeGetThreadList(api: any, limit: number, timestamp: any,
   }
 }
 
+/**
+ * Checks whether the bot is a group admin using the thread's admin list.
+ *
+ * panindigan-automate does not expose thread admin lists, so `getThreadInfo()`
+ * always reports `adminIDs: []`. Returns:
+ *   - `true`  → bot is in the admin list
+ *   - `false` → admin list is available and the bot is not in it
+ *   - `null`  → admin list unavailable (cannot verify)
+ *
+ * Callers doing single-user actions (kick/promote/…) should proceed when the
+ * result is `null` and rely on Facebook enforcing permissions server-side.
+ * Callers doing mass actions (removeall) MUST fail closed on `null`.
+ */
+export function botGroupAdminStatus(threadInfo: any, botId: string | number): boolean | null {
+  const adminIDs = (threadInfo?.adminIDs || [])
+    .map((a: any) => String(a?.id ?? a ?? '').trim())
+    .filter(Boolean);
+  if (adminIDs.length === 0) return null;
+  return adminIDs.includes(String(botId).trim());
+}
+
 export function isApiError(error: any): boolean {
   const errorMsg = error?.message || String(error);
   return errorMsg.includes('Not Found') || 
