@@ -39,7 +39,7 @@
     "node-fetch": "^3.3.2",
     "nsfwjs": "^4.4.0",
     "openai": "^4.104.0",
-    "panindigan-automate": "^0.1.7",
+    "panindigan-automate": "^0.1.8",
     "pg": "^8.23.1",
     "undici": "^8.12.4",
     "unzipper": "^0.12.5",
