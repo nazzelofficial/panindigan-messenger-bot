@@ -13,7 +13,7 @@ dist/
 
 # Sensitive data
 *.session
-*.appstate.json
+appstate*.json
 # panindigan-automate session storage (contains refreshed session cookies)
 panindigan-session/
 

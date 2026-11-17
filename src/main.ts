@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import fs from 'fs';
 import { login } from 'panindigan-automate';
-import type { MessengerClient, ParticipantJoinEvent, ParticipantLeaveEvent } from 'panindigan-automate';
+import type { Credentials, MessengerClient, ParticipantJoinEvent, ParticipantLeaveEvent } from 'panindigan-automate';
 import { BotLogger } from './lib/logger.js';
 import { commandHandler } from './lib/commandHandler.js';
 import { database, initDatabase } from './database/index.js';
@@ -178,71 +178,79 @@ async function main(): Promise<void> {
   // Initialize Anti-NSFW model after server is running
   await antiNsfw.init();
   
-  let appState: any = null;
-  let appStateSource: 'env' | 'file' | '' = '';
-  
-  // Check for APPSTATE environment variable (PaaS support)
-  // This takes precedence over appstate.json file
-  if (process.env.APPSTATE) {
-    try {
-      console.log('  [APPSTATE]        Found APPSTATE environment variable');
-      const envAppState = process.env.APPSTATE.trim();
-      
-      const parsed = JSON.parse(envAppState);
-      if (Array.isArray(parsed)) {
-        appState = parsed;
-      } else if (parsed.cookies && Array.isArray(parsed.cookies)) {
-        appState = parsed.cookies;
-      } else {
-        appState = parsed;
+  let credentials: Credentials | null = null;
+
+  // Accepts every format panindigan-automate's login() supports: a JSON array
+  // of cookies, a { "cookies": [...] } wrapper, a { name: value } object map,
+  // or a raw "c_user=...; xs=...; datr=..." header string.
+  const parseCredentialsInput = (raw: string): Credentials | null => {
+    const trimmed = raw.trim();
+    if (trimmed.length === 0) {
+      return null;
+    }
+    if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (
+          parsed !== null &&
+          typeof parsed === 'object' &&
+          !Array.isArray(parsed) &&
+          Array.isArray((parsed as { cookies?: unknown }).cookies)
+        ) {
+          return (parsed as { cookies: Credentials }).cookies;
+        }
+        return parsed as Credentials;
+      } catch {
+        return null;
       }
-      appStateSource = 'env';
+    }
+    return trimmed.includes('=') ? trimmed : null;
+  };
+
+  // APPSTATE environment variable takes precedence (PaaS support).
+  if (process.env.APPSTATE) {
+    const parsed = parseCredentialsInput(process.env.APPSTATE);
+    if (parsed !== null) {
+      credentials = parsed;
       console.log('  [APPSTATE]        Loaded from APPSTATE env');
-    } catch (error) {
-      console.log('  [APPSTATE]        Error parsing APPSTATE env var', error);
+    } else {
+      console.log('  [APPSTATE]        APPSTATE env var is set but could not be parsed');
     }
   }
 
-  // Fallback to appstate.json only if ENV is not set (development support)
-  if (!appState && fs.existsSync(APPSTATE_FILE)) {
+  // Fallback to appstate.json (development support).
+  if (credentials === null && fs.existsSync(APPSTATE_FILE)) {
     try {
-      const fileContent = fs.readFileSync(APPSTATE_FILE, 'utf8');
-      if (fileContent && fileContent.trim().length > 2) {
-        const parsed = JSON.parse(fileContent);
-        if (Array.isArray(parsed)) {
-          appState = parsed;
-        } else if (parsed.cookies && Array.isArray(parsed.cookies)) {
-          appState = parsed.cookies;
-        } else {
-          appState = parsed;
-        }
-        appStateSource = 'file';
+      const parsed = parseCredentialsInput(fs.readFileSync(APPSTATE_FILE, 'utf8'));
+      if (parsed !== null) {
+        credentials = parsed;
         console.log('  [APPSTATE]        Loaded from file');
       } else {
-        console.log('  [APPSTATE]        File exists but is empty');
+        console.log('  [APPSTATE]        File exists but is empty or invalid');
       }
-    } catch (error) {
+    } catch {
       console.log('  [APPSTATE]        Error loading from file');
     }
-  } else if (!appState) {
+  } else if (credentials === null) {
     console.log('  [APPSTATE]        Not found in environment or file');
   }
-  
-  if (!appState || !Array.isArray(appState) || appState.length === 0) {
+
+  if (credentials === null) {
     console.log('═══════════════════════ WARNING ════════════════════════════════');
     console.log('  No valid appstate found.');
-    console.log('  Please provide a valid appstate.json file with Facebook cookies.');
+    console.log('  Export your Facebook cookies (EditThisCookie / Cookie-Editor), then either:');
+    console.log('    - set the APPSTATE environment variable (Render/PaaS), or');
+    console.log('    - save them as appstate.json in the project root.');
     console.log('  The Express server is running. Bot will not connect to Messenger.');
     console.log('═════════════════════════════════════════════════════════════════');
     return;
   }
-  
   console.log('════════════════════ CONNECTING TO FACEBOOK ═════════════════════');
   console.log('  [LOGIN]           Attempting Facebook login...');
 
   try {
     // Login: resolves with the connected, typed MessengerClient.
-    const client = await login(appState);
+    const client = await login(credentials);
 
     // Register event listeners AFTER login: panindigan-automate's realtime
     // connection is up once login() resolves, and listeners attached here
@@ -314,9 +322,11 @@ async function main(): Promise<void> {
 
     // Sync the appstate to the database only after a successful login,
     // connected to the actual persistence result of the session.
-    const synced = await database.saveAppstate(appState);
-    if (!synced) {
-      console.log('  [APPSTATE]        Not synced to database (DB unavailable or save failed)');
+    if (Array.isArray(credentials)) {
+      const synced = await database.saveAppstate(credentials);
+      if (!synced) {
+        console.log('  [APPSTATE]        Not synced to database (DB unavailable or save failed)');
+      }
     }
 
     const self = await client.getMe();
