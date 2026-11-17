@@ -61,8 +61,8 @@ importers:
         specifier: ^4.104.0
         version: 4.104.0(ws@8.23.0)(zod@3.25.76)
       panindigan-automate:
-        specifier: file:..\panindigan-automate
-        version: file:../panindigan-automate
+        specifier: ^0.1.7
+        version: 0.1.7
       pg:
         specifier: ^8.23.1
         version: 8.23.1
@@ -509,8 +509,8 @@ packages:
     resolution: {integrity: sha512-2mAv+8pkG6GIZiF1kNg1jAjh27IDxEPKwdGul3snfztFerfPGI1LjDezZp3i7BElXompqEtPmoPx6c2wgtWsOA==}
     engines: {node: '>=18'}
 
-  '@tokenizer/inflate@0.6.0':
-    resolution: {integrity: sha512-+0RDxhBkyT9xMnGdJAwmats9yxRLR8ypJrQgrnLqOu4Gv/aHlnxYgdGVy2QTwvBl6IF/w2Hr+ZNirH+iMUbVZA==}
+  '@tokenizer/inflate@0.6.1':
+    resolution: {integrity: sha512-EuqSyHdOXN61cc5/rsW6uUn1TJZJGZr56jlkUbsLwVJ6uHgvwQyFkYfOCf+zzPFAYjftPk1WeJnEhpLVvzbm1A==}
     engines: {node: '>=18'}
 
   '@tokenizer/token@0.3.0':
@@ -1344,8 +1344,8 @@ packages:
     resolution: {integrity: sha512-OqbOk5oEQeAZ8WXWydlu9HJjz9WVdEIvamMCcXmuqUYjTknH/sqsWvhQ3vgwKFRR1HpjvNBKQ37nbJgYzGqGcg==}
     engines: {node: '>=6'}
 
-  miniget@4.2.7:
-    resolution: {integrity: sha512-fOQWaRoMCMr6nrFSoLMhQyjQeUq3Tp4f9Wg0Vd8Q9Yhp3rMHpPCGmx7+aF++/TlwqkKc5U6PNAqK04gQxHXxjQ==}
+  miniget@4.2.8:
+    resolution: {integrity: sha512-1u9vTVr/y4SlCh1ZVGP15Wiie2u2osZqzlov0Dhd8KbN/aotgHSf0S2/tot14l8NhqCt153zw7ClSRoRsPAk1w==}
     engines: {node: '>=20'}
 
   minimatch@3.0.8:
@@ -1476,8 +1476,8 @@ packages:
   pako@1.0.11:
     resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
 
-  panindigan-automate@file:../panindigan-automate:
-    resolution: {directory: ../panindigan-automate, type: directory}
+  panindigan-automate@0.1.7:
+    resolution: {integrity: sha512-EgcJx7mw2IUW2iTdeKKONf6DCFpjvQH3XFn/5hnSgdKbcU6yGHfd9GarRaHqhZKtWhPzja/w87D5ieI0pU0iHQ==}
     engines: {bun: '>=1.1.0', node: '>=22.0.0'}
     hasBin: true
 
@@ -2042,7 +2042,7 @@ snapshots:
       http-cookie-agent: 7.0.4(tough-cookie@6.1.0)(undici@7.30.2)
       https-proxy-agent: 7.0.6
       m3u8stream: 0.8.7
-      miniget: 4.2.7
+      miniget: 4.2.8
       sax: 1.6.1
       tough-cookie: 6.1.0
       undici: 7.30.2
@@ -2482,7 +2482,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@tokenizer/inflate@0.6.0':
+  '@tokenizer/inflate@0.6.1':
     dependencies:
       debug: 4.4.3
       strtok3: 10.8.0
@@ -3121,7 +3121,7 @@ snapshots:
 
   file-type@22.3.0:
     dependencies:
-      '@tokenizer/inflate': 0.6.0
+      '@tokenizer/inflate': 0.6.1
       strtok3: 10.8.0
       token-types: 6.2.0
       uint8array-extras: 1.6.0
@@ -3393,7 +3393,7 @@ snapshots:
 
   m3u8stream@0.8.7:
     dependencies:
-      miniget: 4.2.7
+      miniget: 4.2.8
       sax: 1.6.1
 
   math-intrinsics@1.1.0: {}
@@ -3416,7 +3416,7 @@ snapshots:
 
   mimic-fn@2.1.0: {}
 
-  miniget@4.2.7: {}
+  miniget@4.2.8: {}
 
   minimatch@3.0.8:
     dependencies:
@@ -3550,7 +3550,7 @@ snapshots:
 
   pako@1.0.11: {}
 
-  panindigan-automate@file:../panindigan-automate:
+  panindigan-automate@0.1.7:
     dependencies:
       lru-cache: 11.5.3
       mqtt: 5.16.1
@@ -4133,7 +4133,7 @@ snapshots:
   ytdl-core@4.11.5:
     dependencies:
       m3u8stream: 0.8.7
-      miniget: 4.2.7
+      miniget: 4.2.8
       sax: 1.6.1
 
   zip-stream@6.0.1:
