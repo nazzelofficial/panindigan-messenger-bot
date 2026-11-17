@@ -61,8 +61,8 @@ importers:
         specifier: ^4.104.0
         version: 4.104.0(ws@8.23.0)(zod@3.25.76)
       panindigan-automate:
-        specifier: ^0.1.8
-        version: 0.1.8
+        specifier: ^0.1.9
+        version: 0.1.9
       pg:
         specifier: ^8.23.1
         version: 8.23.1
@@ -1476,8 +1476,8 @@ packages:
   pako@1.0.11:
     resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
 
-  panindigan-automate@0.1.8:
-    resolution: {integrity: sha512-unkRd3voO25fMxHhUtMji0yxrDfv2kG+pzvvZtdZ7/lNluGYyWhH62zc1jgqfyPmlGbXdyw9ybxMDyp/1Vjtew==}
+  panindigan-automate@0.1.9:
+    resolution: {integrity: sha512-FFMsEzKJKGhbhaH9ywYJ0IFwlgRmdmKLPdREA3jRqYph1Wvuwc61jaXE5gBjdUQXOhIx0vNcg9iNQJsuN4/F/g==}
     engines: {bun: '>=1.1.0', node: '>=22.0.0'}
     hasBin: true
 
@@ -3550,7 +3550,7 @@ snapshots:
 
   pako@1.0.11: {}
 
-  panindigan-automate@0.1.8:
+  panindigan-automate@0.1.9:
     dependencies:
       lru-cache: 11.5.3
       mqtt: 5.16.1
