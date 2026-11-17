@@ -25,7 +25,7 @@ export const command: Command = {
   cooldown: 5000,
 
   async execute({ reply, args, event }) {
-    const threadId = event.threadID;
+    const threadId = event.threadId;
 
     if (!args.length) {
       const sentence = sentences[Math.floor(Math.random() * sentences.length)];

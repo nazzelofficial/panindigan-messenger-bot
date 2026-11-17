@@ -25,7 +25,7 @@ const command: Command = {
 
   async execute(context: CommandContext): Promise<void> {
     const { api, event, reply } = context;
-    const senderId = ('' + event.senderID).trim();
+    const senderId = ('' + event.senderId).trim();
 
     const name = husbandoNames[Math.floor(Math.random() * husbandoNames.length)];
     const trait = husbandoTraits[Math.floor(Math.random() * husbandoTraits.length)];

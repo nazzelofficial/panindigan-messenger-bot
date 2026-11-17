@@ -14,8 +14,8 @@ const command: Command = {
 
   async execute(context: CommandContext): Promise<void> {
     const { api, event, reply, args } = context;
-    const threadId = String(event.threadID);
-    const botId = String(api.getCurrentUserID());
+    const threadId = String(event.threadId);
+    const botId = String(api.getSession().userId);
 
     try {
       const maxToDelete = args[0] ? parseInt(args[0]) : 100;

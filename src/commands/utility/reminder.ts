@@ -102,8 +102,12 @@ ${decorations.sun} ${currentTime}
     
     setTimeout(async () => {
       try {
-        await api.sendMessage(
-          `${decorations.bell}${decorations.alarm} 『 REMINDER 』 ${decorations.alarm}${decorations.bell}
+        await api.sendReply(
+          String(event.threadId),
+          String(event.messageId),
+          {
+            type: 'text',
+            body: `${decorations.bell}${decorations.alarm} 『 REMINDER 』 ${decorations.alarm}${decorations.bell}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ⏰ Time's up!
@@ -116,9 +120,7 @@ ${message}
 🔔 Set ${timeStr} ago
 ${decorations.sun} ${fmt.formatTimestamp()}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-          event.threadID,
-          undefined,
-          event.messageID
+          }
         );
       } catch (error) {
         console.error('Failed to send reminder:', error);

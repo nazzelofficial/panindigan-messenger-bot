@@ -9,7 +9,7 @@ const command: Command = {
   aliases: ['getdata', 'viewdata'],
   description: 'View detailed user data from database',
   category: 'admin',
-  usage: 'userdata <@mention|userID>',
+  usage: 'userdata <@mention|userId>',
   examples: ['userdata @user', 'userdata 123456789'],
   ownerOnly: true,
   cooldown: 5000,
@@ -34,7 +34,7 @@ ${decorations.fire} View User Database Record
 ◈ USAGE
 ═══════════════════════════
 ➤ ${prefix}userdata @user
-➤ ${prefix}userdata <userID>
+➤ ${prefix}userdata <userId>
 
 ◈ EXAMPLE
 ═══════════════════════════

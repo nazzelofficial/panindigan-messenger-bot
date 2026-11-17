@@ -20,7 +20,7 @@ const command: Command = {
 
   async execute(context: CommandContext): Promise<void> {
     const { reply, event } = context;
-    const userId = event.senderID;
+    const userId = event.senderId;
 
     const target = heistTargets[Math.floor(Math.random() * heistTargets.length)];
     const roll = Math.random() * 100;

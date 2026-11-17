@@ -8,14 +8,14 @@ const command: Command = {
   aliases: ['lvl', 'mylevel'],
   description: 'Show your current level and XP',
   category: 'level',
-  usage: 'level [@mention|userID]',
+  usage: 'level [@mention|userId]',
   examples: ['level', 'level @user'],
   cooldown: 5000,
 
   async execute(context: CommandContext): Promise<void> {
     const { api, event, args, reply } = context;
     
-    let targetId = ('' + event.senderID).trim();
+    let targetId = ('' + event.senderId).trim();
     
     if (event.mentions && Object.keys(event.mentions).length > 0) {
       targetId = ('' + Object.keys(event.mentions)[0]).trim();

@@ -38,7 +38,8 @@ ${decorations.fire} System-wide messaging
     });
 
     try {
-      const threads = await api.getThreadList(100, null, ['INBOX']);
+      const threadList = await api.getThreadList({ limit: 100, tags: ['INBOX'] });
+      const threads = threadList.threads;
       const groupThreads = threads.filter((t: any) => t.isGroup);
       
       if (groupThreads.length === 0) {
@@ -70,7 +71,7 @@ ${message}
 
       for (const thread of groupThreads) {
         try {
-          const threadId = ('' + thread.threadID).trim();
+          const threadId = ('' + thread.id).trim();
           await sendMessage(broadcastMessage, threadId);
           sent++;
           await new Promise(r => setTimeout(r, 1500));

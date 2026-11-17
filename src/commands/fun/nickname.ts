@@ -33,7 +33,7 @@ const command: Command = {
   async execute(context: CommandContext): Promise<void> {
     const { reply, event, api } = context;
     
-    let targetId = event.senderID;
+    let targetId = event.senderId;
     let targetName = 'You';
     
     if (event.mentions && Object.keys(event.mentions).length > 0) {

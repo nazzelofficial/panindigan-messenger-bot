@@ -91,7 +91,7 @@ ${themeList}
     }
     
     try {
-      await api.changeThreadColor(themeId, String(event.threadID));
+      await api.changeGroupTheme(String(event.threadId), themeId);
       
       const timestamp = new Date().toLocaleString('en-US', {
         timeZone: 'Asia/Manila',
@@ -99,7 +99,7 @@ ${themeList}
         timeStyle: 'short'
       });
       
-      BotLogger.info(`Changed theme to ${themeName} for group ${event.threadID}`);
+      BotLogger.info(`Changed theme to ${themeName} for group ${event.threadId}`);
       
       await reply(`🎨 『 THEME CHANGED 』 🎨
 ═══════════════════════════
@@ -114,7 +114,7 @@ ${decorations.fire} Theme Updated
 ═══════════════════════════
 ${decorations.sparkle} Theme applied successfully!`);
     } catch (err) {
-      BotLogger.error(`Failed to change theme for group ${event.threadID}`, err);
+      BotLogger.error(`Failed to change theme for group ${event.threadId}`, err);
       await reply(`${decorations.fire} 『 ERROR 』
 ═══════════════════════════
 ❌ Failed to change theme

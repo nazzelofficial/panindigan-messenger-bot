@@ -19,7 +19,7 @@ const command: Command = {
 
   async execute(context: CommandContext): Promise<void> {
     const { reply, event } = context;
-    const userId = event.senderID;
+    const userId = event.senderId;
 
     const roll = Math.random() * 100;
     let cumulative = 0;

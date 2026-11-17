@@ -10,7 +10,7 @@ export const command: Command = {
   examples: ['weekly'],
   cooldown: 5000,
   async execute({ reply, event }) {
-    const userId = event.senderID;
+    const userId = event.senderId;
     const lastClaim = await database.getSetting(`weekly_${userId}`);
     const now = Date.now();
     const week = 7 * 24 * 60 * 60 * 1000;

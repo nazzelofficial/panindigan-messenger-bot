@@ -7,14 +7,14 @@ const command: Command = {
   aliases: ['me', 'myprofile'],
   description: 'Display your profile or another user\'s profile',
   category: 'general',
-  usage: 'profile [@mention|userID]',
+  usage: 'profile [@mention|userId]',
   examples: ['profile', 'profile @user'],
   cooldown: 8000,
 
   async execute(context: CommandContext): Promise<void> {
     const { api, event, args, reply } = context;
     
-    let targetId = ('' + event.senderID).trim();
+    let targetId = ('' + event.senderId).trim();
     
     if (event.mentions && Object.keys(event.mentions).length > 0) {
       targetId = ('' + Object.keys(event.mentions)[0]).trim();

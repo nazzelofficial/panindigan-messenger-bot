@@ -13,7 +13,7 @@ const command: Command = {
     const { api, event, reply } = context;
     
     try {
-      const threadId = ('' + event.threadID).trim();
+      const threadId = ('' + event.threadId).trim();
       const threadInfo = await safeGetThreadInfo(api, threadId);
       
       const admins = threadInfo.adminIDs?.map((a: any) => a.id) || [];
@@ -21,9 +21,9 @@ const command: Command = {
       let response = `╔═══════════════════════════════╗\n`;
       response += `║ 👥 THREAD INFO\n`;
       response += `╠═══════════════════════════════╣\n`;
-      response += `║ Name: ${threadInfo.threadName || 'Unnamed'}\n`;
-      response += `║ ID: ${threadInfo.threadID}\n`;
-      response += `║ Members: ${threadInfo.participantIDs?.length || 0}\n`;
+      response += `║ Name: ${threadInfo.name || 'Unnamed'}\n`;
+      response += `║ ID: ${threadInfo.threadId}\n`;
+      response += `║ Members: ${threadInfo.participantIds?.length || 0}\n`;
       response += `║ Admins: ${admins.length}\n`;
       response += `║ Messages: ${threadInfo.messageCount || 'N/A'}\n`;
       

@@ -23,7 +23,7 @@ Ban a user from using bot commands.
 
 📝 Usage:
 • ${prefix}ban @user [reason]
-• ${prefix}ban <userID> [reason]
+• ${prefix}ban <userId> [reason]
 
 📝 Example:
 • ${prefix}ban @user Spamming commands`);
@@ -33,7 +33,7 @@ Ban a user from using bot commands.
     let targetId = String(args[0].replace(/[^0-9]/g, ''));
     
     if (event.messageReply) {
-      targetId = String(event.messageReply.senderID);
+      targetId = String(event.messageReply.senderId);
     } else if (event.mentions && Object.keys(event.mentions).length > 0) {
       targetId = String(Object.keys(event.mentions)[0]);
     }
@@ -46,7 +46,7 @@ Could not find user to ban. Please mention or provide valid ID.`);
       return;
     }
 
-    const senderId = String(event.senderID);
+    const senderId = String(event.senderId);
     
     if (targetId === senderId) {
       await reply(`┏━━━━━━━━━━━━━━━━━━━┓

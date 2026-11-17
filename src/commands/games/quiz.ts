@@ -30,7 +30,7 @@ export const command: Command = {
   cooldown: 3000,
 
   async execute({ reply, args, event }) {
-    const threadId = event.threadID;
+    const threadId = event.threadId;
 
     if (args[0] === 'answer') {
       const current = activeQuiz.get(threadId);

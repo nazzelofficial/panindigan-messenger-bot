@@ -9,7 +9,7 @@ const command: Command = {
   aliases: ['silence', 'timeout'],
   description: 'Mute a user from using bot commands temporarily',
   category: 'admin',
-  usage: 'mute <@mention|userID> <time>',
+  usage: 'mute <@mention|userId> <time>',
   examples: ['mute @user 10m', 'mute 123456789 1h', 'mute @user 30s'],
   adminOnly: true,
   cooldown: 5000,
@@ -93,11 +93,11 @@ ${decorations.fire} Temporarily mute a user
       const userInfo = await safeGetUserInfo(api, targetId);
       const userName = userInfo[targetId]?.name || 'Unknown User';
       
-      const muteKey = `muted_${event.threadID}_${targetId}`;
+      const muteKey = `muted_${event.threadId}_${targetId}`;
       const expiresAt = Date.now() + durationMs;
       
       await database.setSetting(muteKey, JSON.stringify({
-        mutedBy: String(event.senderID),
+        mutedBy: String(event.senderId),
         expiresAt,
         reason: 'Muted by admin',
         timestamp: new Date().toISOString()

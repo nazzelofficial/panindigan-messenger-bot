@@ -48,8 +48,8 @@ export const command: Command = {
   cooldown: 3000,
 
   async execute({ reply, args, event }) {
-    const threadId = event.threadID;
-    const senderId = event.senderID;
+    const threadId = event.threadId;
+    const senderId = event.senderId;
 
     if (args[0] === 'end') {
       if (games.has(threadId)) {

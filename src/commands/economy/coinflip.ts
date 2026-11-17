@@ -11,7 +11,7 @@ export const command: Command = {
   cooldown: 5000,
 
   async execute({ api, event, args, reply, prefix }) {
-    const userId = ('' + event.senderID).trim();
+    const userId = ('' + event.senderId).trim();
 
     if (args.length < 2) {
       await reply(`╭───────────────────╮

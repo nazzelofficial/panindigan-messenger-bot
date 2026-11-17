@@ -23,7 +23,7 @@ const command: Command = {
   async execute(context: CommandContext): Promise<void> {
     const { api, event, reply } = context;
     
-    let puncherId = ('' + event.senderID).trim();
+    let puncherId = ('' + event.senderId).trim();
     let targetId = puncherId;
     let puncherName = 'Someone';
     let targetName = 'themselves';
@@ -31,7 +31,7 @@ const command: Command = {
     if (event.mentions && Object.keys(event.mentions).length > 0) {
       targetId = ('' + Object.keys(event.mentions)[0]).trim();
     } else if (event.messageReply) {
-      targetId = ('' + event.messageReply.senderID).trim();
+      targetId = ('' + event.messageReply.senderId).trim();
     }
 
     try {

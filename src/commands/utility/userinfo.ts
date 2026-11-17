@@ -13,12 +13,12 @@ const command: Command = {
   async execute(context: CommandContext): Promise<void> {
     const { reply, event, api } = context;
     
-    let targetId = event.senderID;
+    let targetId = event.senderId;
     
     if (event.mentions && Object.keys(event.mentions).length > 0) {
       targetId = Object.keys(event.mentions)[0];
-    } else if (event.messageReply?.senderID) {
-      targetId = event.messageReply.senderID;
+    } else if (event.messageReply?.senderId) {
+      targetId = event.messageReply.senderId;
     }
     
     try {

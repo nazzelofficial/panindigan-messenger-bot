@@ -21,11 +21,11 @@ export const command: Command = {
     
     if (success) {
       const amount = Math.floor(Math.random() * (crime.max - crime.min + 1)) + crime.min;
-      await database.updateUserCoins(event.senderID, amount);
+      await database.updateUserCoins(event.senderId, amount);
       await reply(`🦹 CRIME: ${crime.name}\n\n✅ Success!\n+${amount} coins 💰`);
     } else {
       const fine = Math.floor(Math.random() * 100) + 50;
-      await database.updateUserCoins(event.senderID, -fine);
+      await database.updateUserCoins(event.senderId, -fine);
       await reply(`🦹 CRIME: ${crime.name}\n\n❌ Caught!\n-${fine} coins (fine)`);
     }
   },

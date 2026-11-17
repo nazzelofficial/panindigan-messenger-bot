@@ -29,8 +29,8 @@ export const command: Command = {
     }
 
     try {
-      const threadId = ('' + event.threadID).trim();
-      await api.setTitle(newName, threadId);
+      const threadId = ('' + event.threadId).trim();
+      await api.changeGroupName(threadId, newName);
 
       await reply(`✅ *Group Name Changed*\n\n📝 New name: ${newName}`);
     } catch (error) {

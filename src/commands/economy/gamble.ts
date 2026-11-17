@@ -11,7 +11,7 @@ export const command: Command = {
   cooldown: 8000,
 
   async execute({ api, event, args, reply, prefix }) {
-    const userId = ('' + event.senderID).trim();
+    const userId = ('' + event.senderId).trim();
     
     const currentCoins = await database.getUserCoins(userId);
     let bet = parseInt(args[0], 10);

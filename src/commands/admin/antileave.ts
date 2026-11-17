@@ -12,7 +12,7 @@ const command: Command = {
 
   async execute(context: CommandContext): Promise<void> {
     const { api, event, args, reply } = context;
-    const threadId = ('' + event.threadID).trim();
+    const threadId = ('' + event.threadId).trim();
     
     if (!event.isGroup) {
       await reply('⚠️ This command can only be used in group chats.');

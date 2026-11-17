@@ -44,7 +44,7 @@ const command: Command = {
   async execute(context: CommandContext): Promise<void> {
     const { reply, event, api } = context;
     
-    let userId = event.senderID;
+    let userId = event.senderId;
     let userName = 'You';
     
     if (event.mentions && Object.keys(event.mentions).length > 0) {

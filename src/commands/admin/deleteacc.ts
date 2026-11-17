@@ -7,14 +7,14 @@ export const command: Command = {
   aliases: ['deleteaccount', 'removeuser', 'deluser'],
   description: 'Delete a user account from the database (Owner only)',
   category: 'admin',
-  usage: 'deleteacc <@mention|userID> [confirm]',
+  usage: 'deleteacc <@mention|userId> [confirm]',
   examples: ['deleteacc @user', 'deleteacc 123456789 confirm'],
   cooldown: 10000,
   ownerOnly: true,
 
   async execute({ api, event, args, reply }) {
     const ownerId = process.env.OWNER_ID;
-    const senderId = ('' + event.senderID).trim();
+    const senderId = ('' + event.senderId).trim();
     
     if (!ownerId || senderId !== ownerId) {
       await reply(`❌ ACCESS DENIED
@@ -27,7 +27,7 @@ export const command: Command = {
       await reply(`❌ USAGE ERROR
 ━━━━━━━━━━━━━━━
 📌 W!deleteacc <@user>
-📌 W!deleteacc <userID> confirm
+📌 W!deleteacc <userId> confirm
 ━━━━━━━━━━━━━━━
 ⚠️ This action is irreversible!`);
       return;
@@ -36,7 +36,7 @@ export const command: Command = {
     let targetId = '';
 
     if (event.messageReply) {
-      targetId = ('' + event.messageReply.senderID).trim();
+      targetId = ('' + event.messageReply.senderId).trim();
     } else if (event.mentions && Object.keys(event.mentions).length > 0) {
       targetId = ('' + Object.keys(event.mentions)[0]).trim();
     } else {

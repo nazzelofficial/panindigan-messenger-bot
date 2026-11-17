@@ -12,15 +12,15 @@ export const command: Command = {
   cooldown: 5000,
 
   async execute({ api, event, args, reply }) {
-    let targetId = ('' + event.senderID).trim();
+    let targetId = ('' + event.senderId).trim();
     
     if (event.messageReply) {
-      targetId = ('' + event.messageReply.senderID).trim();
+      targetId = ('' + event.messageReply.senderId).trim();
     } else if (event.mentions && Object.keys(event.mentions).length > 0) {
       targetId = ('' + Object.keys(event.mentions)[0]).trim();
     } else if (args[0]) {
       const parsed = args[0].replace(/[^0-9]/g, '');
-      targetId = parsed ? ('' + parsed).trim() : ('' + event.senderID).trim();
+      targetId = parsed ? ('' + parsed).trim() : ('' + event.senderId).trim();
     }
 
     try {

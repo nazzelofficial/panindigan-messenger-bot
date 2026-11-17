@@ -10,7 +10,7 @@ export const command: Command = {
   cooldown: 10000,
 
   async execute({ api, config, reply }) {
-    const botId = api.getCurrentUserID?.() || 'Bot ID';
+    const botId = api.getSession().userId || 'Bot ID';
     const prefix = config.bot.prefix || 'N!';
 
     await reply(`🚀 INVITE BOT

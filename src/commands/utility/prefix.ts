@@ -15,8 +15,8 @@ const command: Command = {
   async execute(context: CommandContext): Promise<void> {
     const { args, reply, event, api } = context;
     
-    const threadId = String(event.threadID);
-    const senderId = String(event.senderID);
+    const threadId = String(event.threadId);
+    const senderId = String(event.senderId);
     const ownerId = process.env.OWNER_ID;
     
     const currentPrefix = await database.getSetting<string>(`prefix_${threadId}`) || config.bot.prefix;

@@ -14,8 +14,8 @@ const command: Command = {
     let response = `╔═══════════════════════════════╗\n`;
     response += `║ 🆔 ID INFO\n`;
     response += `╠═══════════════════════════════╣\n`;
-    response += `║ Your ID: ${event.senderID}\n`;
-    response += `║ Thread ID: ${event.threadID}\n`;
+    response += `║ Your ID: ${event.senderId}\n`;
+    response += `║ Thread ID: ${event.threadId}\n`;
     
     if (event.mentions && Object.keys(event.mentions).length > 0) {
       response += `╠═══════════════════════════════╣\n`;

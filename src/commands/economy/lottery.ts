@@ -11,14 +11,14 @@ export const command: Command = {
   cooldown: 10000,
   async execute({ reply, event }) {
     const ticketCost = 50;
-    const user = await database.getUserData(event.senderID);
+    const user = await database.getUserData(event.senderId);
     const balance = user?.coins || 0;
     
     if (balance < ticketCost) {
       return reply(`❌ Not enough coins!\n\nTicket costs: ${ticketCost} coins\nYou have: ${balance} coins`);
     }
     
-    await database.updateUserCoins(event.senderID, -ticketCost);
+    await database.updateUserCoins(event.senderId, -ticketCost);
     
     const numbers = [
       Math.floor(Math.random() * 10),
@@ -32,7 +32,7 @@ export const command: Command = {
     else if (numbers.includes(7)) prize = 100;
     
     if (prize > 0) {
-      await database.updateUserCoins(event.senderID, prize);
+      await database.updateUserCoins(event.senderId, prize);
     }
     
     await reply(`🎰 LOTTERY\n\n${numbers.join(' - ')}\n\n${prize > 0 ? `🎉 You won ${prize} coins!` : '❌ No luck this time!'}`);

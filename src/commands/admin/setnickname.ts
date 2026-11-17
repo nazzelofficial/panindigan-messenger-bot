@@ -21,7 +21,7 @@ export const command: Command = {
     let nickname = '';
 
     if (event.messageReply) {
-      targetId = ('' + event.messageReply.senderID).trim();
+      targetId = ('' + event.messageReply.senderId).trim();
       nickname = args.join(' ');
     } else if (event.mentions && Object.keys(event.mentions).length > 0) {
       targetId = ('' + Object.keys(event.mentions)[0]).trim();
@@ -46,8 +46,8 @@ export const command: Command = {
       const userInfo = await safeGetUserInfo(api, targetId);
       const userName = userInfo[targetId]?.name || 'Unknown User';
 
-      const threadId = ('' + event.threadID).trim();
-      await api.changeNickname(nickname, threadId, targetId);
+      const threadId = ('' + event.threadId).trim();
+      await api.changeNickname(threadId, targetId, nickname);
 
       await reply(`✅ *Nickname Changed*\n\n👤 User: ${userName}\n📝 New nickname: ${nickname}`);
     } catch (error) {

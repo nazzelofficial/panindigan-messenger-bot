@@ -25,14 +25,14 @@ export const command: Command = {
     
     if (!item) return reply('❌ Item not found! Use: shop to see available items.');
     
-    const user = await database.getUserData(event.senderID);
+    const user = await database.getUserData(event.senderId);
     const balance = user?.coins || 0;
     
     if (balance < item.price) {
       return reply(`❌ Not enough coins!\n\nYou have: ${balance} coins\nItem costs: ${item.price} coins`);
     }
     
-    await database.updateUserCoins(event.senderID, -item.price);
+    await database.updateUserCoins(event.senderId, -item.price);
     await reply(`✅ PURCHASED!\n\n${item.emoji} ${itemName}\n-${item.price} coins`);
   },
 };

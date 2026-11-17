@@ -18,7 +18,7 @@ const command: Command = {
     
     const option = args[0]?.toLowerCase();
     
-    const antispamKey = `antispam_${event.threadID}`;
+    const antispamKey = `antispam_${event.threadId}`;
     const currentSetting = await database.getSetting<string>(antispamKey);
     const isEnabled = currentSetting !== 'false';
     
@@ -50,7 +50,7 @@ ${decorations.fire} Spam Protection
     try {
       await database.setSetting(antispamKey, String(enable));
       
-      BotLogger.info(`Anti-spam ${enable ? 'enabled' : 'disabled'} for group ${event.threadID}`);
+      BotLogger.info(`Anti-spam ${enable ? 'enabled' : 'disabled'} for group ${event.threadId}`);
       
       await reply(`🛡️ 『 ANTI-SPAM ${enable ? 'ENABLED' : 'DISABLED'} 』 🛡️
 ═══════════════════════════

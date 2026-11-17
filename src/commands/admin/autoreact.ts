@@ -18,7 +18,7 @@ const command: Command = {
     
     const option = args[0]?.toLowerCase();
     
-    const reactKey = `autoreact_${event.threadID}`;
+    const reactKey = `autoreact_${event.threadId}`;
     const currentSetting = await database.getSetting<string>(reactKey);
     const isEnabled = currentSetting === 'true';
     
@@ -50,7 +50,7 @@ ${decorations.fire} Automatic Reactions
     try {
       await database.setSetting(reactKey, String(enable));
       
-      BotLogger.info(`Auto-react ${enable ? 'enabled' : 'disabled'} for group ${event.threadID}`);
+      BotLogger.info(`Auto-react ${enable ? 'enabled' : 'disabled'} for group ${event.threadId}`);
       
       await reply(`😊 『 AUTO REACT ${enable ? 'ENABLED' : 'DISABLED'} 』 😊
 ═══════════════════════════

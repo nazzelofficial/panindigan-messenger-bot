@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import fs from 'fs';
-import { createAutomationClient } from './lib/automationClient.js';
+import { login } from 'panindigan-automate';
+import type { MessengerClient, ParticipantJoinEvent, ParticipantLeaveEvent } from 'panindigan-automate';
 import { BotLogger } from './lib/logger.js';
 import { commandHandler } from './lib/commandHandler.js';
 import { database, initDatabase } from './database/index.js';
@@ -240,14 +241,13 @@ async function main(): Promise<void> {
   console.log('  [LOGIN]           Attempting Facebook login...');
 
   try {
-    // panindigan-automate does not emit 'appstate:update' — it refreshes and
-    // persists the session cookies itself (default: ./panindigan-session),
-    // preferring the persisted jar over this appstate on subsequent logins.
-    const client = createAutomationClient({ appState });
+    // Login: resolves with the connected, typed MessengerClient.
+    const client = await login(appState);
 
-    // Register event listeners BEFORE login: panindigan-automate starts the
-    // realtime transport during login() and emits events as soon as it is up.
-    let currentUserId = '';
+    // Register event listeners AFTER login: panindigan-automate's realtime
+    // connection is up once login() resolves, and listeners attached here
+    // still receive all subsequent events.
+    let currentUserId = client.getSession().userId;
 
     // Message event handler
     client.on('message', async (event) => {
@@ -279,12 +279,19 @@ async function main(): Promise<void> {
       }
     });
 
-    // Group join/leave events (mapped to legacy 'event' payloads by the adapter)
-    client.on('event', async (event) => {
+    // Group join/leave events (modern panindigan-automate payloads)
+    client.on('participant_join', async (event) => {
       try {
-        await handleEvent(client, event, currentUserId || undefined);
+        await handleGroupEvent(client, event);
       } catch (error) {
-        BotLogger.error('Group event handling error', error);
+        BotLogger.error('Group join event handling error', error);
+      }
+    });
+    client.on('participant_leave', async (event) => {
+      try {
+        await handleGroupEvent(client, event);
+      } catch (error) {
+        BotLogger.error('Group leave event handling error', error);
       }
     });
 
@@ -302,11 +309,8 @@ async function main(): Promise<void> {
       BotLogger.info(`panindigan-automate reconnected (attempt ${event?.attempt ?? '?'}, drained ${event?.drained ?? 0} queued packets)`);
     });
 
-    const loginResult = await client.connect();
-    currentUserId = loginResult.userId;
-    if (loginResult.restored) {
-      console.log('  [APPSTATE]        Restored persisted session (panindigan-session)');
-    }
+    // Login is already complete (login() resolved with the connected client).
+    currentUserId = client.getSession().userId;
 
     // Sync the appstate to the database only after a successful login,
     // connected to the actual persistence result of the session.
@@ -315,8 +319,8 @@ async function main(): Promise<void> {
       console.log('  [APPSTATE]        Not synced to database (DB unavailable or save failed)');
     }
 
-    const self = await client.users.getSelf();
-    const botName = self.name || 'Unknown';
+    const self = await client.getMe();
+    const botName = self.name ?? 'Unknown';
 
     console.log('═════════════════════ LOGIN SUCCESSFUL ═════════════════════════');
     console.log(`  [ACCOUNT]         ${botName}`);
@@ -350,30 +354,55 @@ function normalizeId(id: any): string {
   return ('' + id).trim();
 }
 
-async function handleEvent(api: any, event: any, currentUserId?: string): Promise<void> {
-  if (event.threadID) event.threadID = normalizeId(event.threadID);
-  if (event.senderID) event.senderID = normalizeId(event.senderID);
-  if (event.userID) event.userID = normalizeId(event.userID);
-  if (event.messageID) event.messageID = normalizeId(event.messageID);
-  if (event.messageReply?.senderID) event.messageReply.senderID = normalizeId(event.messageReply.senderID);
-  if (event.messageReply?.messageID) event.messageReply.messageID = normalizeId(event.messageReply.messageID);
-  if (event.participantIDs && Array.isArray(event.participantIDs)) {
-    event.participantIDs = event.participantIDs.map((id: any) => normalizeId(id));
+async function enrichReply(client: MessengerClient, event: any): Promise<void> {
+  const repliedId = event.repliedToMessageId;
+  if (!repliedId) return;
+  try {
+    const result = await client.getMessages(event.threadId, { limit: 20 });
+    const match = result.messages.find((m: any) => m?.id === repliedId);
+    event.messageReply = match
+      ? {
+          messageId: match.id,
+          senderId: match.senderId,
+          body: match.body ?? null,
+          attachments: match.attachments ?? [],
+          timestamp: match.timestamp,
+        }
+      : { messageId: repliedId };
+  } catch {
+    event.messageReply = { messageID: repliedId };
   }
+}
+
+async function handleEvent(client: MessengerClient, event: any, currentUserId?: string): Promise<void> {
+  if (event.type === 'message_reply') {
+    await enrichReply(client, event);
+  }
+
+  if (event.threadId) event.threadId = normalizeId(event.threadId);
+  if (event.senderId) event.senderId = normalizeId(event.senderId);
+  if (event.userId) event.userId = normalizeId(event.userId);
+  if (event.messageId) event.messageId = normalizeId(event.messageId);
+  if (event.messageReply?.senderId) event.messageReply.senderId = normalizeId(event.messageReply.senderId);
+  if (event.messageReply?.messageId) event.messageReply.messageId = normalizeId(event.messageReply.messageId);
+  if (event.participantIds && Array.isArray(event.participantIds)) {
+    event.participantIds = event.participantIds.map((id: any) => normalizeId(id));
+  }
+
   
   // Set isGroup property
-  if (event.threadID) {
-    event.isGroup = event.isGroup ?? (event.threadID !== event.senderID);
+  if (event.threadId) {
+    event.isGroup = event.isGroup ?? (event.threadId !== event.senderId);
   }
   
   switch (event.type) {
     case 'message':
     case 'message_reply':
-      await handleMessage(api, event, currentUserId);
+      await handleMessage(client, event, currentUserId);
       break;
       
     case 'event':
-      await handleGroupEvent(api, event);
+      await handleGroupEvent(client, event);
       break;
       
     case 'message_reaction':
@@ -388,12 +417,12 @@ async function handleEvent(api: any, event: any, currentUserId?: string): Promis
   }
 }
 
-async function handleMessage(api: any, event: any, currentUserId?: string): Promise<void> {
+async function handleMessage(client: MessengerClient, event: any, currentUserId?: string): Promise<void> {
   const body = event.body || '';
-  const threadId = String(event.threadID);
-  const senderId = String(event.senderID);
-  const messageId = String(event.messageID || '');
-  const userId = currentUserId || (await api.users.getSelf()).id;
+  const threadId = String(event.threadId);
+  const senderId = String(event.senderId);
+  const messageId = String(event.messageId || '');
+  const userId = currentUserId || client.getSession().userId;
   
   const hasAttachments = event.attachments && event.attachments.length > 0;
   if (!body.trim() && !hasAttachments) return;
@@ -405,7 +434,7 @@ async function handleMessage(api: any, event: any, currentUserId?: string): Prom
   }
 
   // Ensure thread exists in database
-  const threadResult = await database.getOrCreateThread(threadId, event.isGroup ? event.threadName : undefined, event.isGroup);
+  const threadResult = await database.getOrCreateThread(threadId, event.isGroup ? event.name : undefined, event.isGroup);
   if (!threadResult) {
      BotLogger.warn(`Thread persistence failed for ${threadId}. Database might be disconnected.`);
   }
@@ -420,7 +449,7 @@ async function handleMessage(api: any, event: any, currentUserId?: string): Prom
     const isLocked = await database.getSetting(lockKey);
     
     if (isLocked === 'true') {
-      const canAccess = await canAccessLockedGroup(senderId, api, threadId);
+      const canAccess = await canAccessLockedGroup(senderId, client, threadId);
       if (!canAccess) {
         return;
       }
@@ -441,27 +470,23 @@ async function handleMessage(api: any, event: any, currentUserId?: string): Prom
   if (!isSelfMessage && hasAttachments) {
     const isNsfwEnabled = await antiNsfw.isEnabled(threadId);
     if (isNsfwEnabled) {
-      const nsfwCheck = await antiNsfw.checkContent(event, api);
+      const nsfwCheck = await antiNsfw.checkContent(event, client);
       if (nsfwCheck.detected) {
         try {
           // Attempt to unsend the message immediately
           if (messageId) {
-             await api.messages.unsend(messageId);
+             await client.unsendMessage(messageId);
              BotLogger.info(`NSFW Auto-Mod: Unsent message ${messageId} in ${threadId}`);
           }
 
-          await api.messages.send({
-            threadId,
-            body: `⚠️ Restricted content detected. This message has been automatically removed.`
-          });
+          await client.sendMessage(threadId, { type: 'text', body: `⚠️ Restricted content detected. This message has been automatically removed.`
+           });
         } catch (e) {
           BotLogger.error('Failed to unsend NSFW message', e);
           try {
              // Fallback notification if unsend fails (likely due to permissions)
-             await api.messages.send({
-               threadId,
-               body: `⚠️ Restricted content detected.\n\n❌ I could not unsend the message. Please ensure I am a Group Admin.`
-             });
+             await client.sendMessage(threadId, { type: 'text', body: `⚠️ Restricted content detected.\n\n❌ I could not unsend the message. Please ensure I am a Group Admin.`
+              });
           } catch(err) {}
         }
         
@@ -490,7 +515,7 @@ async function handleMessage(api: any, event: any, currentUserId?: string): Prom
       // This enforces the "block" behavior
       if (messageId) {
         try {
-          await api.messages.unsend(messageId);
+          await client.unsendMessage(messageId);
         } catch (e) {
           BotLogger.warn(`Failed to unsend bad word message in ${threadId}`);
         }
@@ -498,10 +523,8 @@ async function handleMessage(api: any, event: any, currentUserId?: string): Prom
 
       if (settings.action === 'warn' && detection.message) {
         try {
-          await api.messages.send({
-            threadId,
-            body: `${detection.message}\n\nWarning ${warnings}/3 - Further violations may result in action.`
-          });
+          await client.sendMessage(threadId, { type: 'text', body: `${detection.message}\n\nWarning ${warnings}/3 - Further violations may result in action.`
+           });
         } catch (e) {}
       }
       
@@ -517,7 +540,7 @@ async function handleMessage(api: any, event: any, currentUserId?: string): Prom
   }
   
   if (config.features.xp.enabled && !isSelfMessage) {
-    await handleXP(api, senderId, threadId);
+    await handleXP(client, senderId, threadId);
   }
   
   if (body.startsWith(customPrefix)) {
@@ -527,10 +550,8 @@ async function handleMessage(api: any, event: any, currentUserId?: string): Prom
       const hasNotified = maintenanceData.notifiedGroups.includes(threadId);
       if (!hasNotified) {
         try {
-          await api.messages.send({
-            threadId,
-            body: maintenance.generateMaintenanceMessage(maintenanceData)
-          });
+          await client.sendMessage(threadId, { type: 'text', body: maintenance.generateMaintenanceMessage(maintenanceData)
+           });
           await maintenance.addNotifiedGroup(threadId);
         } catch (e) {}
       }
@@ -548,19 +569,13 @@ async function handleMessage(api: any, event: any, currentUserId?: string): Prom
       const sendMessage = async (message: string | MessageOptions, tid?: string): Promise<void> => {
         const targetThread = normalizeId(tid || threadId);
         
-        let messageContent: any;
-        if (typeof message === 'string') {
-          messageContent = { body: message };
-        } else {
-          messageContent = { ...message };
-          if (messageContent.body) messageContent.body = String(messageContent.body);
-        }
-        
+        const content = typeof message === 'string'
+          ? { type: 'text' as const, body: message }
+          : message && typeof message === 'object'
+            ? { type: 'text' as const, ...message, body: String((message as any).body ?? '') }
+            : { type: 'text' as const, body: String(message ?? '') };
         try {
-          const messageInfo = await api.messages.send({
-            threadId: targetThread,
-            ...messageContent
-          });
+          const messageInfo = await client.sendMessage(targetThread, content);
           
           if (messageInfo?.messageId) {
             const botMessagesKey = `bot_messages_${targetThread}`;
@@ -581,7 +596,7 @@ async function handleMessage(api: any, event: any, currentUserId?: string): Prom
       };
       
       const context: CommandContext = {
-        api,
+        api: client,
         event,
         args,
         prefix: customPrefix,
@@ -603,7 +618,7 @@ async function handleMessage(api: any, event: any, currentUserId?: string): Prom
   }
 }
 
-async function handleXP(api: any, senderId: string, threadId: string): Promise<void> {
+async function handleXP(client: MessengerClient, senderId: string, threadId: string): Promise<void> {
   const senderIdStr = normalizeId(senderId);
   const threadIdStr = normalizeId(threadId);
   
@@ -619,7 +634,7 @@ async function handleXP(api: any, senderId: string, threadId: string): Promise<v
   
   if (result?.leveledUp) {
     try {
-      const userInfo = await api.users.getProfile(senderIdStr);
+      const userInfo = await client.getUser(senderIdStr);
       const userName = userInfo.name || 'User';
       
       const levelUpMessage = `🎉 LEVEL UP!
@@ -629,125 +644,125 @@ async function handleXP(api: any, senderId: string, threadId: string): Promise<v
 ━━━━━━━━━━━━━━━`;
       
       try {
-        await api.messages.send({
-          threadId: threadIdStr,
-          body: levelUpMessage
-        });
+        await client.sendMessage(threadIdStr, { type: 'text', body: levelUpMessage });
       } catch (err) {}
     } catch (error) {}
   }
 }
 
-async function handleGroupEvent(api: any, event: any): Promise<void> {
-  const { logMessageType, logMessageData, threadID } = event;
-  const threadIdStr = normalizeId(threadID);
-  
-  if (logMessageType === 'log:subscribe' && logMessageData?.addedParticipants) {
-    if (config.features.welcome.enabled) {
-      for (const participant of logMessageData.addedParticipants) {
-        const userId = normalizeId(participant.userFbId || participant.id?.split(':').pop() || '');
-        const userName = participant.fullName || 'Member';
-        
-        const eventKey = `welcome_${threadIdStr}_${userId}`;
-        if (isEventDuplicate(eventKey)) {
-          BotLogger.debug(`Duplicate welcome event ignored for ${userName} in ${threadIdStr}`);
-          continue;
-        }
-        
-        try {
-          const welcomeMessage = await eventHandler.generateProfessionalWelcome(
-            api,
-            threadIdStr,
-            userId,
-            userName
-          );
-          
-          await api.messages.send({
-            threadId: threadIdStr,
-            body: welcomeMessage
-          });
-          
-          await database.logEntry({
-            type: 'event',
-            level: 'info',
-            message: `Welcome sent to ${userName}`,
-            threadId: threadIdStr,
-            userId,
-          });
-        } catch (error) {
-          BotLogger.error('Failed to send welcome message', error);
-        }
+async function handleGroupEvent(
+  client: MessengerClient,
+  event: ParticipantJoinEvent | ParticipantLeaveEvent
+): Promise<void> {
+  const threadId = event.threadId;
+  const threadIdStr = normalizeId(threadId);
+
+  if (event.type === 'participant_join' && config.features.welcome.enabled) {
+    for (const addedUser of event.addedIds) {
+      const userId = normalizeId(addedUser);
+      let userName = 'Member';
+      try {
+        const info = await client.getUser(userId);
+        userName = info.name ?? 'Member';
+      } catch {
+        // fall back to 'Member'
+      }
+
+      const eventKey = `welcome_${threadIdStr}_${userId}`;
+      if (isEventDuplicate(eventKey)) {
+        BotLogger.debug(`Duplicate welcome event ignored for ${userName} in ${threadIdStr}`);
+        continue;
+      }
+
+      try {
+        const welcomeMessage = await eventHandler.generateProfessionalWelcome(
+          client,
+          threadIdStr,
+          userId,
+          userName
+        );
+
+        await client.sendMessage(threadIdStr, { type: 'text', body: welcomeMessage });
+
+        await database.logEntry({
+          type: 'event',
+          level: 'info',
+          message: `Welcome sent to ${userName}`,
+          threadId: threadIdStr,
+          userId,
+        });
+      } catch (error) {
+        BotLogger.error('Failed to send welcome message', error);
       }
     }
   }
-  
-  if (logMessageType === 'log:unsubscribe') {
-    const leftUser = normalizeId(logMessageData?.leftParticipantFbId || '');
-    
-    const leaveEventKey = `leave_${threadIdStr}_${leftUser}`;
-    if (isEventDuplicate(leaveEventKey)) {
-      BotLogger.debug(`Duplicate leave event ignored for ${leftUser} in ${threadIdStr}`);
-      return;
-    }
-    
-    if (config.features.autoLeave.logEnabled) {
-      try {
-        let userName = 'Member';
-        try {
-          const userInfo = await api.users.getProfile(leftUser);
-          userName = userInfo.name || 'Member';
-        } catch (e) {}
-        
-        const leaveMessage = await eventHandler.generateProfessionalLeave(
-          api,
-          threadIdStr,
-          leftUser,
-          userName
-        );
-        
-        await api.messages.send({
-          threadId: threadIdStr,
-          body: leaveMessage
-        });
-        
-        await database.logEntry({
-          type: 'event',
-          level: 'info',
-          message: `User ${userName} left the group`,
-          threadId: threadIdStr,
-          userId: leftUser,
-        });
-      } catch (error) {
-        BotLogger.error('Failed to send leave message', error);
+
+  if (event.type === 'participant_leave') {
+    for (const removedUser of event.removedIds) {
+      const leftUser = normalizeId(removedUser);
+
+      const leaveEventKey = `leave_${threadIdStr}_${leftUser}`;
+      if (isEventDuplicate(leaveEventKey)) {
+        BotLogger.debug(`Duplicate leave event ignored for ${leftUser} in ${threadIdStr}`);
+        continue;
       }
-    }
-    
-    const antiLeaveEnabled = await database.getSetting<boolean>(`antileave_${threadIdStr}`);
-    if (antiLeaveEnabled && leftUser) {
-      BotLogger.info(`Anti-leave triggered: Adding ${leftUser} back to ${threadIdStr}`);
-      try {
-        await api.threads.addParticipants(threadIdStr, [leftUser]);
-        
-        const userInfo = await api.users.getProfile(leftUser);
-        const userName = userInfo.name || 'Member';
-        
-        await api.messages.send({
-          threadId: threadIdStr,
-          body: `🔄 ANTI-LEAVE
+
+      if (config.features.autoLeave.logEnabled) {
+        try {
+          let userName = 'Member';
+          try {
+            const userInfo = await client.getUser(leftUser);
+            userName = userInfo.name ?? 'Member';
+          } catch (e) {}
+
+          const leaveMessage = await eventHandler.generateProfessionalLeave(
+            client,
+            threadIdStr,
+            leftUser,
+            userName
+          );
+
+          await client.sendMessage(threadIdStr, { type: 'text', body: leaveMessage });
+
+          await database.logEntry({
+            type: 'event',
+            level: 'info',
+            message: `User ${userName} left the group`,
+            threadId: threadIdStr,
+            userId: leftUser,
+          });
+        } catch (error) {
+          BotLogger.error('Failed to send leave message', error);
+        }
+      }
+
+      const antiLeaveEnabled = await database.getSetting<boolean>(`antileave_${threadIdStr}`);
+      if (antiLeaveEnabled && leftUser) {
+        BotLogger.info(`Anti-leave triggered: Adding ${leftUser} back to ${threadIdStr}`);
+        try {
+          await client.addParticipant(threadIdStr, leftUser);
+
+          const userInfo = await client.getUser(leftUser);
+          const userName = userInfo.name ?? 'Member';
+
+          await client.sendMessage(threadIdStr, {
+            type: 'text',
+            body: `🔄 ANTI-LEAVE
 ━━━━━━━━━━━━━━━
 ✅ ${userName} added back
-━━━━━━━━━━━━━━━`
-        });
-        
-        await database.logEntry({
-          type: 'event',
-          level: 'info',
-          message: `Anti-leave: Added ${userName} back to group`,
-          threadId: threadIdStr,
-          userId: leftUser,
-        });
-      } catch (error) {
-        BotLogger.error(`Failed to add ${leftUser} back to group`, error);
+━━━━━━━━━━━━━━━`,
+          });
+
+          await database.logEntry({
+            type: 'event',
+            level: 'info',
+            message: `Anti-leave: Added ${userName} back to group`,
+            threadId: threadIdStr,
+            userId: leftUser,
+          });
+        } catch (error) {
+          BotLogger.error(`Failed to add ${leftUser} back to group`, error);
+        }
       }
     }
   }

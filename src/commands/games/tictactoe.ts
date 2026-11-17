@@ -23,8 +23,8 @@ const command: Command = {
 
   async execute(context: CommandContext): Promise<void> {
     const { args, reply, event, api } = context;
-    const threadId = String(event.threadID);
-    const senderId = String(event.senderID);
+    const threadId = String(event.threadId);
+    const senderId = String(event.senderId);
 
     const game = activeGames.get(threadId);
 
@@ -68,7 +68,7 @@ const command: Command = {
       const winner = checkWin(game.board);
       if (winner) {
         const winnerId = winner === '❌' ? game.players.X : game.players.O;
-        const winnerName = (await api.getUserInfo(winnerId))[winnerId].name;
+        const winnerName = (await api.getUser(winnerId)).name;
         await reply(renderBoard(game.board) + `\n\n🎉 ${winnerName} (${winner}) wins!`);
         activeGames.delete(threadId);
         return;
@@ -86,7 +86,7 @@ const command: Command = {
       game.lastMoveTime = Date.now();
       
       const nextPlayerId = game.turn === 'X' ? game.players.X : game.players.O;
-      const nextPlayerName = (await api.getUserInfo(nextPlayerId))[nextPlayerId].name;
+      const nextPlayerName = (await api.getUser(nextPlayerId)).name;
 
       await reply(renderBoard(game.board) + `\n\nTurn: ${nextPlayerName} (${game.turn === 'X' ? '❌' : '⭕'})`);
       return;
@@ -116,8 +116,8 @@ const command: Command = {
       lastMoveTime: Date.now()
     });
 
-    const p1Name = (await api.getUserInfo(senderId))[senderId].name;
-    const p2Name = (await api.getUserInfo(opponentId))[opponentId].name;
+    const p1Name = (await api.getUser(senderId)).name;
+    const p2Name = (await api.getUser(opponentId)).name;
 
     await reply(`🎮 Tic Tac Toe Started!
     

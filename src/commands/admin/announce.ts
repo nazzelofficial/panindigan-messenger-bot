@@ -41,8 +41,8 @@ ${decorations.sparkle} Send group announcements
     
     let groupName = 'This Group';
     try {
-      const threadInfo = await safeGetThreadInfo(api, String(event.threadID));
-      groupName = threadInfo.threadName || 'This Group';
+      const threadInfo = await safeGetThreadInfo(api, String(event.threadId));
+      groupName = threadInfo.name || 'This Group';
     } catch (e) {}
     
     const announcement = `📢 『 ANNOUNCEMENT 』 📢
@@ -61,7 +61,7 @@ ${decorations.sparkle} Please read carefully!`;
     
     try {
       await reply(announcement);
-      BotLogger.info(`Announcement sent to ${event.threadID}`, { message });
+      BotLogger.info(`Announcement sent to ${event.threadId}`, { message });
     } catch (error) {
       BotLogger.error('Failed to send announcement', error);
       await reply(`${decorations.fire} 『 ERROR 』

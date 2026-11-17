@@ -19,7 +19,7 @@ export const command: Command = {
   cooldown: 20000,
 
   async execute({ api, event, args, reply, prefix }) {
-    const userId = ('' + event.senderID).trim();
+    const userId = ('' + event.senderId).trim();
     const prompt = args.join(' ').trim();
 
     if (!prompt) {

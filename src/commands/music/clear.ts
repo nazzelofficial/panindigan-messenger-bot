@@ -11,7 +11,7 @@ export const command: Command = {
   cooldown: 5000,
 
   async execute({ event, reply, prefix }: CommandContext): Promise<void> {
-    const threadId = event.threadID;
+    const threadId = event.threadId;
     const session = musicService.getSession(threadId);
 
     if (session.queue.length === 0) {

@@ -21,7 +21,7 @@ const command: Command = {
 
   async execute(context: CommandContext): Promise<void> {
     const { reply, event } = context;
-    const userId = event.senderID;
+    const userId = event.senderId;
 
     const card = [
       symbols[Math.floor(Math.random() * symbols.length)],

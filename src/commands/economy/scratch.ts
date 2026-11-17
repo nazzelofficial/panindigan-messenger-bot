@@ -13,12 +13,12 @@ export const command: Command = {
   cooldown: 10000,
   async execute({ reply, event }) {
     const cost = 25;
-    const user = await database.getUserData(event.senderID);
+    const user = await database.getUserData(event.senderId);
     const balance = user?.coins || 0;
     
     if (balance < cost) return reply(`❌ Need ${cost} coins for a scratch card!`);
     
-    await database.updateUserCoins(event.senderID, -cost);
+    await database.updateUserCoins(event.senderId, -cost);
     
     const card = [
       [symbols[Math.floor(Math.random() * 6)], symbols[Math.floor(Math.random() * 6)], symbols[Math.floor(Math.random() * 6)]],
@@ -35,7 +35,7 @@ export const command: Command = {
       }
     }
     
-    if (prize > 0) await database.updateUserCoins(event.senderID, prize);
+    if (prize > 0) await database.updateUserCoins(event.senderId, prize);
     
     const display = card.map(row => row.join('')).join('\n');
     await reply(`🎫 SCRATCH CARD\n\n${display}\n\n${prize > 0 ? `🎉 You won ${prize} coins!` : '❌ No matches!'}`);

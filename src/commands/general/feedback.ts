@@ -28,7 +28,7 @@ ${prefix}feedback Add more fun games!`);
     }
 
     const feedback = args.join(' ');
-    const userId = event.senderID;
+    const userId = event.senderId;
 
     BotLogger.info(`Feedback from ${userId}: ${feedback}`);
 

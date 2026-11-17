@@ -18,7 +18,7 @@ const command: Command = {
     
     const option = args[0]?.toLowerCase();
     
-    const greetKey = `autogreet_${event.threadID}`;
+    const greetKey = `autogreet_${event.threadId}`;
     const currentSetting = await database.getSetting<string>(greetKey);
     const isEnabled = currentSetting === 'true';
     
@@ -50,7 +50,7 @@ ${decorations.fire} Time-Based Greetings
     try {
       await database.setSetting(greetKey, String(enable));
       
-      BotLogger.info(`Auto-greet ${enable ? 'enabled' : 'disabled'} for group ${event.threadID}`);
+      BotLogger.info(`Auto-greet ${enable ? 'enabled' : 'disabled'} for group ${event.threadId}`);
       
       await reply(`🌅 『 AUTO GREET ${enable ? 'ENABLED' : 'DISABLED'} 』 🌅
 ═══════════════════════════

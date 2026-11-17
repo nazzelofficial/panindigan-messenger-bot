@@ -13,7 +13,7 @@ export const command: Command = {
   cooldown: 3000,
 
   async execute({ reply, args, event }) {
-    const threadId = event.threadID;
+    const threadId = event.threadId;
 
     if (!args.length) {
       const sequence = [emojis[Math.floor(Math.random() * emojis.length)]];

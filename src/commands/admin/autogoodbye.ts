@@ -18,7 +18,7 @@ const command: Command = {
     
     const option = args[0]?.toLowerCase();
     
-    const goodbyeKey = `autogoodbye_${event.threadID}`;
+    const goodbyeKey = `autogoodbye_${event.threadId}`;
     const currentSetting = await database.getSetting<string>(goodbyeKey);
     const isEnabled = currentSetting !== 'false';
     
@@ -50,7 +50,7 @@ ${decorations.fire} Goodbye Messages
     try {
       await database.setSetting(goodbyeKey, String(enable));
       
-      BotLogger.info(`Auto-goodbye ${enable ? 'enabled' : 'disabled'} for group ${event.threadID}`);
+      BotLogger.info(`Auto-goodbye ${enable ? 'enabled' : 'disabled'} for group ${event.threadId}`);
       
       await reply(`👋 『 AUTO GOODBYE ${enable ? 'ENABLED' : 'DISABLED'} 』 👋
 ═══════════════════════════

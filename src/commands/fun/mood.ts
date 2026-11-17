@@ -26,7 +26,7 @@ const command: Command = {
 
   async execute(context: CommandContext): Promise<void> {
     const { api, event, reply } = context;
-    const senderId = ('' + event.senderID).trim();
+    const senderId = ('' + event.senderId).trim();
 
     try {
       const userInfo = await safeGetUserInfo(api, senderId);

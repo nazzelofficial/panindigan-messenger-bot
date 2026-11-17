@@ -43,10 +43,10 @@ ${decorations.fire} Change group name
     }
     
     try {
-      const threadInfo = await safeGetThreadInfo(api, event.threadID);
-      const oldName = threadInfo?.threadName || 'Unnamed Group';
+      const threadInfo = await safeGetThreadInfo(api, event.threadId);
+      const oldName = threadInfo?.name || 'Unnamed Group';
       
-      await api.setTitle(newName, String(event.threadID));
+      await api.changeGroupName(String(event.threadId), newName);
       
       const timestamp = new Date().toLocaleString('en-US', {
         timeZone: 'Asia/Manila',
@@ -54,7 +54,7 @@ ${decorations.fire} Change group name
         timeStyle: 'short'
       });
       
-      BotLogger.info(`Renamed group ${event.threadID} from "${oldName}" to "${newName}"`);
+      BotLogger.info(`Renamed group ${event.threadId} from "${oldName}" to "${newName}"`);
       
       await reply(`✏️ 『 GROUP RENAMED 』 ✏️
 ═══════════════════════════
@@ -70,7 +70,7 @@ ${decorations.fire} Name Updated
 ═══════════════════════════
 ${decorations.sparkle} Group renamed successfully!`);
     } catch (err) {
-      BotLogger.error(`Failed to rename group ${event.threadID}`, err);
+      BotLogger.error(`Failed to rename group ${event.threadId}`, err);
       await reply(`${decorations.fire} 『 ERROR 』
 ═══════════════════════════
 ❌ Failed to rename group

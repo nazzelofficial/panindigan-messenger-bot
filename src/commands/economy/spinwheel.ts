@@ -23,7 +23,7 @@ const command: Command = {
 
   async execute(context: CommandContext): Promise<void> {
     const { args, reply, event, prefix } = context;
-    const userId = event.senderID;
+    const userId = event.senderId;
 
     if (args.length === 0) {
       await reply(`╭─────────────────╮

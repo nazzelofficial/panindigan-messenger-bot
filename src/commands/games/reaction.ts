@@ -13,7 +13,7 @@ export const command: Command = {
   cooldown: 5000,
 
   async execute({ reply, args, event }) {
-    const threadId = event.threadID;
+    const threadId = event.threadId;
 
     if (!args.length) {
       const target = targets[Math.floor(Math.random() * targets.length)];

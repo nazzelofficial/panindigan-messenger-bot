@@ -18,8 +18,8 @@ export const command: Command = {
       type: 'report',
       level: 'info',
       message: message,
-      userId: event.senderID,
-      threadId: event.threadID,
+      userId: event.senderId,
+      threadId: event.threadId,
     });
     
     await reply(`📩 REPORT SENT\n\nThank you for your feedback!\n\n"${message.substring(0, 100)}..."\n\nThe owner will review this soon.`);

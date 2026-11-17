@@ -38,10 +38,10 @@ const command: Command = {
       for (let i = 0; i < pageGroups.length; i++) {
         const group = pageGroups[i];
         const name = group.name || 'Unnamed Group';
-        const members = group.participantIDs?.length || 0;
+        const members = group.participantIds?.length || 0;
         
         response += `║ ${startIdx + i + 1}. ${name}\n`;
-        response += `║    ID: ${group.threadID}\n`;
+        response += `║    ID: ${group.threadId}\n`;
         response += `║    Members: ${members}\n`;
         response += `║\n`;
       }

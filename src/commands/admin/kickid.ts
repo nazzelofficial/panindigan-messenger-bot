@@ -7,15 +7,15 @@ const command: Command = {
   aliases: ['removeid', 'bootid', 'kickbyid'],
   description: 'Remove a member from the group using their User ID',
   category: 'admin',
-  usage: 'kickid <userID>',
+  usage: 'kickid <userId>',
   examples: ['kickid 123456789012345'],
   adminOnly: true,
   cooldown: 5000,
 
   async execute(context: CommandContext): Promise<void> {
     const { api, event, args, reply, prefix } = context;
-    const threadId = String(event.threadID);
-    const botId = String(api.getCurrentUserID());
+    const threadId = String(event.threadId);
+    const botId = String(api.getSession().userId);
     
     if (!args[0] || !/^\d+$/.test(args[0])) {
       await reply(`┏━━━━━━━━━━━━━━━━━━━━━┓
@@ -24,14 +24,14 @@ const command: Command = {
 
 Remove user by their Facebook User ID.
 
-📝 Usage: ${prefix}kickid <userID>
+📝 Usage: ${prefix}kickid <userId>
 📝 Example: ${prefix}kickid 100012345678901`);
       return;
     }
     
     const targetId = String(args[0]).trim();
     
-    if (targetId === String(event.senderID)) {
+    if (targetId === String(event.senderId)) {
       await reply(`┏━━━━━━━━━━━━━━━━━━━┓
 ┃  ❌ DENIED
 ┗━━━━━━━━━━━━━━━━━━━┛
@@ -65,7 +65,7 @@ Please make bot admin first.`);
       const userInfo = await safeGetUserInfo(api, targetId);
       const userName = userInfo[targetId]?.name || 'Unknown User';
       
-      await api.removeUserFromGroup(targetId, threadId);
+      await api.removeParticipant(threadId, targetId);
       
       const timestamp = new Date().toLocaleString('en-PH', {
         timeZone: 'Asia/Manila',

@@ -30,7 +30,7 @@ export const command: Command = {
   cooldown: 5000,
 
   async execute({ api, event, args, reply, prefix }) {
-    const userId = ('' + event.senderID).trim();
+    const userId = ('' + event.senderId).trim();
     const bet = parseInt(args[0], 10);
 
     if (!args[0] || isNaN(bet) || bet < 10) {

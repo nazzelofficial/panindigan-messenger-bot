@@ -18,7 +18,7 @@ const command: Command = {
     
     const option = args[0]?.toLowerCase();
     
-    const welcomeKey = `autowelcome_${event.threadID}`;
+    const welcomeKey = `autowelcome_${event.threadId}`;
     const currentSetting = await database.getSetting<string>(welcomeKey);
     const isEnabled = currentSetting !== 'false';
     
@@ -50,7 +50,7 @@ ${decorations.fire} Welcome Messages
     try {
       await database.setSetting(welcomeKey, String(enable));
       
-      BotLogger.info(`Auto-welcome ${enable ? 'enabled' : 'disabled'} for group ${event.threadID}`);
+      BotLogger.info(`Auto-welcome ${enable ? 'enabled' : 'disabled'} for group ${event.threadId}`);
       
       await reply(`👋 『 AUTO WELCOME ${enable ? 'ENABLED' : 'DISABLED'} 』 👋
 ═══════════════════════════

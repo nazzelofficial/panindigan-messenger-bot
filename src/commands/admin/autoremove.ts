@@ -13,7 +13,7 @@ const command: Command = {
 
   async execute(context: CommandContext): Promise<void> {
     const { args, reply, event, prefix } = context;
-    const threadId = event.threadID;
+    const threadId = event.threadId;
 
     if (args.length === 0) {
       const current = await database.getSetting<boolean>(`autoremove_${threadId}`) || false;

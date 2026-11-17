@@ -17,7 +17,7 @@ const command: Command = {
     const { event, args, reply, prefix } = context;
     
     if (args.length === 0) {
-      const slowmodeKey = `slowmode_${event.threadID}`;
+      const slowmodeKey = `slowmode_${event.threadId}`;
       const currentSetting = await database.getSetting<string>(slowmodeKey);
       const current = currentSetting ? parseInt(currentSetting) : 0;
       
@@ -46,12 +46,12 @@ ${decorations.fire} Message Rate Limit
     const arg = args[0].toLowerCase();
     
     try {
-      const slowmodeKey = `slowmode_${event.threadID}`;
+      const slowmodeKey = `slowmode_${event.threadId}`;
       
       if (arg === 'off' || arg === '0') {
         await database.deleteSetting(slowmodeKey);
         
-        BotLogger.info(`Disabled slowmode for group ${event.threadID}`);
+        BotLogger.info(`Disabled slowmode for group ${event.threadId}`);
         
         await reply(`🐌 『 SLOWMODE DISABLED 』 🐌
 ═══════════════════════════
@@ -86,7 +86,7 @@ ${decorations.sparkle} Members can chat freely!`);
         timeStyle: 'short'
       });
       
-      BotLogger.info(`Set slowmode to ${seconds}s for group ${event.threadID}`);
+      BotLogger.info(`Set slowmode to ${seconds}s for group ${event.threadId}`);
       
       await reply(`🐌 『 SLOWMODE ENABLED 』 🐌
 ═══════════════════════════
@@ -107,7 +107,7 @@ between bot commands.
 ═══════════════════════════
 💡 Use ${prefix}slowmode off to disable`);
     } catch (err) {
-      BotLogger.error(`Failed to set slowmode for group ${event.threadID}`, err);
+      BotLogger.error(`Failed to set slowmode for group ${event.threadId}`, err);
       await reply(`${decorations.fire} 『 ERROR 』
 ═══════════════════════════
 ❌ Failed to set slowmode`);

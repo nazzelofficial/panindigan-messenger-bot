@@ -12,12 +12,12 @@ const command: Command = {
   async execute(context: CommandContext): Promise<void> {
     const { api, event, reply } = context;
     
-    let targetId = ('' + event.senderID).trim();
+    let targetId = ('' + event.senderId).trim();
 
     if (event.mentions && Object.keys(event.mentions).length > 0) {
       targetId = ('' + Object.keys(event.mentions)[0]).trim();
     } else if (event.messageReply) {
-      targetId = ('' + event.messageReply.senderID).trim();
+      targetId = ('' + event.messageReply.senderId).trim();
     }
 
     let targetName = 'You';

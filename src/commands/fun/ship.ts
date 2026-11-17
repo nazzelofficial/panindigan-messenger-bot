@@ -13,7 +13,7 @@ export const command: Command = {
 
   async execute({ api, event, args, reply, prefix }) {
     const mentions = Object.keys(event.mentions || {});
-    let user1Id = String(event.senderID);
+    let user1Id = String(event.senderId);
     let user2Id = '';
 
     if (mentions.length >= 2) {
@@ -22,7 +22,7 @@ export const command: Command = {
     } else if (mentions.length === 1) {
       user2Id = String(mentions[0]);
     } else if (event.messageReply) {
-      user2Id = String(event.messageReply.senderID);
+      user2Id = String(event.messageReply.senderId);
     } else {
       await reply(`🚢 『 SHIP BUILDER 』 🚢
 ═══════════════════════════

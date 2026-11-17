@@ -17,7 +17,7 @@ const command: Command = {
     const { api, event, reply } = context;
     
     try {
-      const threadInfo = await safeGetThreadInfo(api, event.threadID);
+      const threadInfo = await safeGetThreadInfo(api, event.threadId);
       
       if (!threadInfo) {
         await reply(`${decorations.fire} 『 ERROR 』
@@ -50,12 +50,12 @@ const command: Command = {
       for (const adminId of adminIDs) {
         const info = userInfos[adminId];
         const name = info?.name || 'Unknown';
-        const isCreator = adminId === threadInfo.threadID;
+        const isCreator = adminId === threadInfo.threadId;
         adminList += `${index}. ${name}${isCreator ? ' 👑' : ''}\n   └─ ID: ${adminId}\n`;
         index++;
       }
       
-      const groupName = threadInfo.threadName || 'This Group';
+      const groupName = threadInfo.name || 'This Group';
       
       await reply(`👥 『 GROUP ADMINS 』 👥
 ═══════════════════════════
@@ -68,9 +68,9 @@ ${adminList}
 ═══════════════════════════
 ${decorations.sparkle} 👑 = Group Creator`);
       
-      BotLogger.info(`Listed ${adminIDs.length} admins for group ${event.threadID}`);
+      BotLogger.info(`Listed ${adminIDs.length} admins for group ${event.threadId}`);
     } catch (err) {
-      BotLogger.error(`Failed to get admins for group ${event.threadID}`, err);
+      BotLogger.error(`Failed to get admins for group ${event.threadId}`, err);
       await reply(`${decorations.fire} 『 ERROR 』
 ═══════════════════════════
 ❌ Failed to get admin list`);

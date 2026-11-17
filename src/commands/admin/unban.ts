@@ -21,7 +21,7 @@ export const command: Command = {
 
 Remove a ban from a user.
 
-📝 Usage: ${prefix}unban <userID>
+📝 Usage: ${prefix}unban <userId>
 📝 Example: ${prefix}unban 100012345678901`);
       return;
     }
@@ -61,7 +61,7 @@ This user is not banned.`);
         hour12: true
       });
 
-      BotLogger.info(`Unbanned user ${targetId} (${userName}) by ${event.senderID}`);
+      BotLogger.info(`Unbanned user ${targetId} (${userName}) by ${event.senderId}`);
 
       await reply(`┏━━━━━━━━━━━━━━━━━━━━━┓
 ┃  ✅ USER UNBANNED

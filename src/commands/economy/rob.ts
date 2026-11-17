@@ -12,11 +12,11 @@ export const command: Command = {
   cooldown: 120000,
 
   async execute({ api, event, args, reply, prefix }) {
-    const senderId = ('' + event.senderID).trim();
+    const senderId = ('' + event.senderId).trim();
     let targetId = '';
 
     if (event.messageReply) {
-      targetId = ('' + event.messageReply.senderID).trim();
+      targetId = ('' + event.messageReply.senderId).trim();
     } else if (event.mentions && Object.keys(event.mentions).length > 0) {
       targetId = ('' + Object.keys(event.mentions)[0]).trim();
     } else if (args[0]) {

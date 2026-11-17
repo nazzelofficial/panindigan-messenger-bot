@@ -18,7 +18,7 @@ const command: Command = {
     
     const option = args[0]?.toLowerCase();
     
-    const replyKey = `autoreply_${event.threadID}`;
+    const replyKey = `autoreply_${event.threadId}`;
     const currentSetting = await database.getSetting<string>(replyKey);
     const isEnabled = currentSetting === 'true';
     
@@ -50,7 +50,7 @@ ${decorations.fire} Automatic Responses
     try {
       await database.setSetting(replyKey, String(enable));
       
-      BotLogger.info(`Auto-reply ${enable ? 'enabled' : 'disabled'} for group ${event.threadID}`);
+      BotLogger.info(`Auto-reply ${enable ? 'enabled' : 'disabled'} for group ${event.threadId}`);
       
       await reply(`💬 『 AUTO REPLY ${enable ? 'ENABLED' : 'DISABLED'} 』 💬
 ═══════════════════════════

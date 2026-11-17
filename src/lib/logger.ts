@@ -152,13 +152,14 @@ export class BotLogger {
     this.printLine('LOGIN FACEBOOK:', 'Login in progress...', chalk.yellow, chalk.cyan);
   }
 
-  static printBotInfo(api: any): void {
+  static printBotInfo(client: any): void {
     this.printSection('BOT INFO');
     this.printLine('NODE VERSION:', process.version, chalk.yellow, chalk.green);
     this.printLine('PROJECT VERSION:', config.bot.version, chalk.yellow, chalk.green);
-    
-    if (api?.getCurrentUserID) {
-      this.botId = api.getCurrentUserID();
+
+    const botId = client?.getSession?.().userId;
+    if (botId) {
+      this.botId = botId;
       this.printLine('BOT ID:', this.botId, chalk.yellow, chalk.green);
     }
     

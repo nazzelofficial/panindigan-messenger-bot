@@ -15,7 +15,7 @@ export const command: Command = {
   examples: ['luckynumber'],
   cooldown: 5000,
   async execute({ reply, event }) {
-    const seed = parseInt(event.senderID.slice(-6)) + new Date().getDate();
+    const seed = parseInt(event.senderId.slice(-6)) + new Date().getDate();
     const lucky1 = (seed % 49) + 1;
     const lucky2 = ((seed * 3) % 49) + 1;
     const lucky3 = ((seed * 7) % 49) + 1;

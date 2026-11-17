@@ -40,8 +40,8 @@ const command: Command = {
     
     let userName = 'Friend';
     try {
-      const userInfo = await safeGetUserInfo(api, event.senderID);
-      userName = userInfo[event.senderID]?.name?.split(' ')[0] || 'Friend';
+      const userInfo = await safeGetUserInfo(api, event.senderId);
+      userName = userInfo[event.senderId]?.name?.split(' ')[0] || 'Friend';
     } catch (e) {}
     
     const affirmation = affirmations[Math.floor(Math.random() * affirmations.length)];

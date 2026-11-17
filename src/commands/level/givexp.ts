@@ -21,7 +21,7 @@ export const command: Command = {
     let targetId = String(args[0].replace(/[^0-9]/g, ''));
     
     if (event.messageReply) {
-      targetId = String(event.messageReply.senderID);
+      targetId = String(event.messageReply.senderId);
     } else if (event.mentions && Object.keys(event.mentions).length > 0) {
       targetId = String(Object.keys(event.mentions)[0]);
     }

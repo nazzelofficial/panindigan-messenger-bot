@@ -14,11 +14,11 @@ const command: Command = {
 
   async execute(context: CommandContext): Promise<void> {
     const { api, event, reply, args, prefix } = context;
-    const threadId = String(event.threadID);
-    const botId = String(api.getCurrentUserID());
-    const senderId = String(event.senderID);
+    const threadId = String(event.threadId);
+    const botId = String(api.getSession().userId);
+    const senderId = String(event.senderId);
     
-    if (!event.isGroup && !event.threadID) {
+    if (!event.isGroup && !event.threadId) {
       await reply(`┏━━━━━━━━━━━━━━━━━━━┓
 ┃  ❌ ERROR
 ┗━━━━━━━━━━━━━━━━━━━┛
@@ -42,14 +42,14 @@ Could not fetch group info. Please try again.`);
         return;
       }
       
-      groupName = threadInfo.threadName || threadInfo.name || 'Unknown Group';
+      groupName = threadInfo.name || threadInfo.name || 'Unknown Group';
       
       adminIDs = (threadInfo.adminIDs || []).map((a: any) => String(a.id || a).trim());
       
-      if (threadInfo.participantIDs && Array.isArray(threadInfo.participantIDs)) {
-        allParticipants = threadInfo.participantIDs.map((id: any) => String(id).trim());
+      if (threadInfo.participantIds && Array.isArray(threadInfo.participantIds)) {
+        allParticipants = threadInfo.participantIds.map((id: any) => String(id).trim());
       } else if (threadInfo.participants && Array.isArray(threadInfo.participants)) {
-        allParticipants = threadInfo.participants.map((p: any) => String(p.userID || p.id || p).trim());
+        allParticipants = threadInfo.participants.map((p: any) => String(p.userId || p.id || p).trim());
       } else if (threadInfo.userInfo && Array.isArray(threadInfo.userInfo)) {
         allParticipants = threadInfo.userInfo.map((u: any) => String(u.id).trim());
       }
@@ -140,7 +140,7 @@ Please wait...`);
     
     for (const userId of toKick) {
       try {
-        await api.removeUserFromGroup(userId, threadId);
+        await api.removeParticipant(threadId, userId);
         kicked++;
         BotLogger.debug(`RemoveAll: Removed ${userId} from ${threadId}`);
       } catch (e: any) {

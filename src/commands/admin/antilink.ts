@@ -18,7 +18,7 @@ const command: Command = {
     
     const option = args[0]?.toLowerCase();
     
-    const antilinkKey = `antilink_${event.threadID}`;
+    const antilinkKey = `antilink_${event.threadId}`;
     const currentSetting = await database.getSetting<string>(antilinkKey);
     const isEnabled = currentSetting === 'true';
     
@@ -51,7 +51,7 @@ ${decorations.fire} Link Protection
     try {
       await database.setSetting(antilinkKey, String(enable));
       
-      BotLogger.info(`Anti-link ${enable ? 'enabled' : 'disabled'} for group ${event.threadID}`);
+      BotLogger.info(`Anti-link ${enable ? 'enabled' : 'disabled'} for group ${event.threadId}`);
       
       await reply(`🔗 『 ANTI-LINK ${enable ? 'ENABLED' : 'DISABLED'} 』 🔗
 ═══════════════════════════

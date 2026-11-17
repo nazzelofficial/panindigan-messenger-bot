@@ -10,7 +10,7 @@ export const command: Command = {
   cooldown: 10,
 
   async execute({ event, reply }) {
-    const userId = event.senderID;
+    const userId = event.senderId;
     const today = new Date().toDateString();
     
     const seed = (userId + today).split('').reduce((a, c) => a + c.charCodeAt(0), 0);

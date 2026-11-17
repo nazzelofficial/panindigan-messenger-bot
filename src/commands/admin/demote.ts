@@ -7,15 +7,15 @@ const command: Command = {
   aliases: ['removeadmin', 'unadmin'],
   description: 'Remove admin status from a user',
   category: 'admin',
-  usage: 'demote <@mention|userID>',
+  usage: 'demote <@mention|userId>',
   examples: ['demote @user', 'demote 123456789'],
   adminOnly: true,
   cooldown: 5000,
 
   async execute(context: CommandContext): Promise<void> {
     const { api, event, args, reply, prefix } = context;
-    const threadId = String(event.threadID);
-    const botId = String(api.getCurrentUserID());
+    const threadId = String(event.threadId);
+    const botId = String(api.getSession().userId);
 
     let targetId: string | null = null;
 
@@ -33,7 +33,7 @@ const command: Command = {
 Remove admin status from a user.
 
 📝 Usage: ${prefix}demote @user
-📝 Usage: ${prefix}demote <userID>`);
+📝 Usage: ${prefix}demote <userId>`);
       return;
     }
 
@@ -57,7 +57,7 @@ Could not fetch group info. Please try again.`);
       }
       
       const adminIDs = (threadInfo.adminIDs || []).map((a: any) => String(a.id || a));
-      const participantIDs = (threadInfo.participantIDs || []).map((id: any) => String(id));
+      const participantIds = (threadInfo.participantIds || []).map((id: any) => String(id));
 
       const isBotAdmin = botGroupAdminStatus(threadInfo, botId);
       if (isBotAdmin === false) {
@@ -69,7 +69,7 @@ Bot must be admin to demote users.`);
       }
       // null → admin list unavailable (panindigan-automate): proceed, Facebook enforces permissions
 
-      if (!participantIDs.includes(targetId)) {
+      if (!participantIds.includes(targetId)) {
         await reply(`┏━━━━━━━━━━━━━━━━━━━┓
 ┃  ❌ ERROR
 ┗━━━━━━━━━━━━━━━━━━━┛

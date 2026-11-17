@@ -14,8 +14,8 @@ const command: Command = {
 
   async execute(context: CommandContext): Promise<void> {
     const { api, event, args, reply, prefix } = context;
-    const threadId = String(event.threadID);
-    const botId = String(api.getCurrentUserID());
+    const threadId = String(event.threadId);
+    const botId = String(api.getSession().userId);
 
     const newName = args.join(' ').trim();
 
@@ -50,7 +50,7 @@ Could not fetch group info. Please try again.`);
         return;
       }
       
-      const oldName = threadInfo.threadName || 'Unknown';
+      const oldName = threadInfo.name || 'Unknown';
 
       const isBotAdmin = botGroupAdminStatus(threadInfo, botId);
       if (isBotAdmin === false) {
@@ -62,7 +62,7 @@ Bot must be admin to change group name.`);
       }
       // null → admin list unavailable (panindigan-automate): proceed, Facebook enforces permissions
 
-      await api.setTitle(newName, threadId);
+      await api.changeGroupName(threadId, newName);
 
       const timestamp = new Date().toLocaleString('en-PH', {
         timeZone: 'Asia/Manila',

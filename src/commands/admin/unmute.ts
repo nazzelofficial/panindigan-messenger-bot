@@ -9,7 +9,7 @@ const command: Command = {
   aliases: ['unsilence', 'untimeout'],
   description: 'Unmute a previously muted user',
   category: 'admin',
-  usage: 'unmute <@mention|userID>',
+  usage: 'unmute <@mention|userId>',
   examples: ['unmute @user', 'unmute 123456789'],
   adminOnly: true,
   cooldown: 5000,
@@ -46,7 +46,7 @@ ${decorations.fire} Unmute a user
       const userInfo = await safeGetUserInfo(api, targetId);
       const userName = userInfo[targetId]?.name || 'Unknown User';
       
-      const muteKey = `muted_${event.threadID}_${targetId}`;
+      const muteKey = `muted_${event.threadId}_${targetId}`;
       const muteData = await database.getSetting(muteKey);
       
       if (!muteData) {

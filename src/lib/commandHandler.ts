@@ -123,8 +123,8 @@ export class CommandHandler {
       return;
     }
 
-    const userId = context.event.senderID;
-    const threadId = context.event.threadID;
+    const userId = context.event.senderId;
+    const threadId = context.event.threadId;
 
     // Skip Anti-Spam for Owner
     if (!isOwner(userId)) {

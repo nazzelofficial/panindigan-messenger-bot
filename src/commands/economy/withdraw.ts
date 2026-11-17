@@ -12,7 +12,7 @@ export const command: Command = {
   async execute({ reply, args, event }) {
     if (!args.length) return reply('❌ How much to withdraw? Use: withdraw <amount>');
     
-    const bankBalance = Number(await database.getSetting(`bank_${event.senderID}`)) || 0;
+    const bankBalance = Number(await database.getSetting(`bank_${event.senderId}`)) || 0;
     
     let amount: number;
     if (args[0].toLowerCase() === 'all') {
@@ -24,8 +24,8 @@ export const command: Command = {
     if (isNaN(amount) || amount < 1) return reply('❌ Invalid amount!');
     if (amount > bankBalance) return reply(`❌ You only have ${bankBalance} coins in bank!`);
     
-    await database.updateUserCoins(event.senderID, amount);
-    await database.setSetting(`bank_${event.senderID}`, bankBalance - amount);
+    await database.updateUserCoins(event.senderId, amount);
+    await database.setSetting(`bank_${event.senderId}`, bankBalance - amount);
     
     await reply(`🏦 WITHDRAWN\n\n+${amount} coins to wallet\n\nBank balance: ${bankBalance - amount} coins`);
   },

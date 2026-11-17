@@ -17,7 +17,7 @@ const command: Command = {
 
   async execute(context: CommandContext): Promise<void> {
     const { args, reply, event, prefix } = context;
-    const threadId = event.threadID;
+    const threadId = event.threadId;
     const settings = await badWordsFilter.getSettings(threadId);
 
     if (args.length === 0 || args[0]?.toLowerCase() === 'status') {

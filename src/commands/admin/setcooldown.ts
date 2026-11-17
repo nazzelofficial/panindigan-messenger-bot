@@ -53,12 +53,12 @@ ${decorations.fire} Custom Command Cooldowns
     }
     
     try {
-      const cooldownKey = `cooldown_${event.threadID}_${cmd.name}`;
+      const cooldownKey = `cooldown_${event.threadId}_${cmd.name}`;
       
       if (cooldownArg === 'reset' || cooldownArg === 'default') {
         await database.deleteSetting(cooldownKey);
         
-        BotLogger.info(`Reset cooldown for ${cmd.name} in group ${event.threadID}`);
+        BotLogger.info(`Reset cooldown for ${cmd.name} in group ${event.threadId}`);
         
         await reply(`⏱️ 『 COOLDOWN RESET 』 ⏱️
 ═══════════════════════════
@@ -87,7 +87,7 @@ ${decorations.fire} Reset to Default
       
       await database.setSetting(cooldownKey, String(seconds * 1000));
       
-      BotLogger.info(`Set cooldown for ${cmd.name} to ${seconds}s in group ${event.threadID}`);
+      BotLogger.info(`Set cooldown for ${cmd.name} to ${seconds}s in group ${event.threadId}`);
       
       await reply(`⏱️ 『 COOLDOWN SET 』 ⏱️
 ═══════════════════════════

@@ -9,7 +9,7 @@ const command: Command = {
   aliases: ['resetuser', 'clearuserdata'],
   description: 'Reset a user\'s data in the database',
   category: 'admin',
-  usage: 'resetuserdata <@mention|userID> confirm',
+  usage: 'resetuserdata <@mention|userId> confirm',
   examples: ['resetuserdata @user confirm', 'resetuserdata 123456789 confirm'],
   ownerOnly: true,
   cooldown: 10000,

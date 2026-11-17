@@ -17,7 +17,7 @@ const command: Command = {
     const { event, args, reply, prefix } = context;
     
     const option = args[0]?.toLowerCase();
-    const isEnabled = await antiNsfw.isEnabled(event.threadID);
+    const isEnabled = await antiNsfw.isEnabled(event.threadId);
     
     if (!option || !['on', 'off'].includes(option)) {
       await reply(`🔞 『 ANTI-NSFW 』 🔞
@@ -48,10 +48,10 @@ ${decorations.fire} 18+ Content Protection
     const enable = option === 'on';
     
     try {
-      const success = await antiNsfw.setEnabled(event.threadID, enable);
+      const success = await antiNsfw.setEnabled(event.threadId, enable);
       
       if (!success) {
-         BotLogger.error(`[AntiNSFW] Database save failed for ${event.threadID}`);
+         BotLogger.error(`[AntiNSFW] Database save failed for ${event.threadId}`);
          await reply(`${decorations.fire} 『 DATABASE ERROR 』
 ═══════════════════════════
 ❌ Failed to save setting to database.
@@ -60,12 +60,12 @@ The bot might be disconnected from PostgreSQL.`);
       }
 
       // Verify persistence immediately
-      const verify = await antiNsfw.isEnabled(event.threadID);
+      const verify = await antiNsfw.isEnabled(event.threadId);
       if (verify !== enable) {
-         BotLogger.warn(`[AntiNSFW] Persistence check failed for ${event.threadID}. Expected ${enable}, got ${verify}`);
+         BotLogger.warn(`[AntiNSFW] Persistence check failed for ${event.threadId}. Expected ${enable}, got ${verify}`);
       }
       
-      BotLogger.info(`Anti-NSFW ${enable ? 'enabled' : 'disabled'} for group ${event.threadID}`);
+      BotLogger.info(`Anti-NSFW ${enable ? 'enabled' : 'disabled'} for group ${event.threadId}`);
       
       await reply(`🔞 『 ANTI-NSFW ${enable ? 'ENABLED' : 'DISABLED'} 』 🔞
 ═══════════════════════════

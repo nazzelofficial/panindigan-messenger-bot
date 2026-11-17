@@ -18,12 +18,12 @@ export const command: Command = {
     const amount = parseInt(args[1] || args[0]);
     if (isNaN(amount) || amount < 1) return reply('❌ Invalid amount!');
     
-    const user = await database.getUserData(event.senderID);
+    const user = await database.getUserData(event.senderId);
     const balance = user?.coins || 0;
     
     if (amount > balance) return reply(`❌ You only have ${balance} coins!`);
     
-    await database.updateUserCoins(event.senderID, -amount);
+    await database.updateUserCoins(event.senderId, -amount);
     await database.updateUserCoins(targetId, amount);
     
     const targetName = Object.values(mentions)[0] || 'User';

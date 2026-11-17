@@ -7,14 +7,14 @@ export const command: Command = {
   aliases: ['takecoins', 'removebal', 'takemoney'],
   description: 'Remove coins from a user (Owner only)',
   category: 'admin',
-  usage: 'removecoins <@mention|userID> <amount>',
+  usage: 'removecoins <@mention|userId> <amount>',
   examples: ['removecoins @user 1000', 'removecoins 123456789 500'],
   cooldown: 5000,
   ownerOnly: true,
 
   async execute({ api, event, args, reply }) {
     const ownerId = process.env.OWNER_ID;
-    const senderId = ('' + event.senderID).trim();
+    const senderId = ('' + event.senderId).trim();
     
     if (!ownerId || senderId !== ownerId) {
       await reply(`❌ ACCESS DENIED
@@ -27,7 +27,7 @@ export const command: Command = {
       await reply(`❌ USAGE ERROR
 ━━━━━━━━━━━━━━━
 📌 N!removecoins <@user> <amount>
-📌 N!removecoins <userID> <amount>
+📌 N!removecoins <userId> <amount>
 ━━━━━━━━━━━━━━━
 Example: N!removecoins @user 1000`);
       return;
@@ -37,7 +37,7 @@ Example: N!removecoins @user 1000`);
     let amount = 0;
 
     if (event.messageReply) {
-      targetId = ('' + event.messageReply.senderID).trim();
+      targetId = ('' + event.messageReply.senderId).trim();
       amount = parseInt(args[0], 10);
     } else if (event.mentions && Object.keys(event.mentions).length > 0) {
       targetId = ('' + Object.keys(event.mentions)[0]).trim();

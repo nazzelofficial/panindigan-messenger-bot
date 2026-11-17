@@ -24,7 +24,7 @@ const command: Command = {
         type: 'command'
       });
       
-      const groupLogs = logs.filter(log => log.threadId === String(event.threadID));
+      const groupLogs = logs.filter(log => log.threadId === String(event.threadId));
       
       if (groupLogs.length === 0) {
         await reply(`📋 『 ACTIVITY LOG 』 📋
@@ -63,9 +63,9 @@ ${logList}
 📊 Showing ${groupLogs.slice(0, 15).length} entries
 💡 Use ${prefix}activitylog 20 for more`);
       
-      BotLogger.info(`Viewed activity log for group ${event.threadID}`);
+      BotLogger.info(`Viewed activity log for group ${event.threadId}`);
     } catch (err) {
-      BotLogger.error(`Failed to get activity log for group ${event.threadID}`, err);
+      BotLogger.error(`Failed to get activity log for group ${event.threadId}`, err);
       await reply(`${decorations.fire} 『 ERROR 』
 ═══════════════════════════
 ❌ Failed to get activity log`);

@@ -7,16 +7,16 @@ const command: Command = {
   aliases: ['rmember', 'rmmember', 'remove'],
   description: 'Remove one or multiple members from the group',
   category: 'admin',
-  usage: 'removemember <@mention|userID> [more users...]',
+  usage: 'removemember <@mention|userId> [more users...]',
   examples: ['removemember @user', 'removemember @user1 @user2', 'removemember 123456'],
   adminOnly: true,
   cooldown: 5000,
 
   async execute(context: CommandContext): Promise<void> {
     const { api, event, args, reply, prefix } = context;
-    const threadId = String(event.threadID);
-    const botId = String(api.getCurrentUserID());
-    const senderId = String(event.senderID);
+    const threadId = String(event.threadId);
+    const botId = String(api.getSession().userId);
+    const senderId = String(event.senderId);
     
     const targetIds: string[] = [];
     
@@ -88,7 +88,7 @@ Processing ${validTargets.length} users...`);
           const userInfo = await safeGetUserInfo(api, targetId);
           const userName = userInfo[targetId]?.name || 'Unknown';
           
-          await api.removeUserFromGroup(targetId, threadId);
+          await api.removeParticipant(threadId, targetId);
           
           removed++;
           results.push({ name: userName, id: targetId, success: true });

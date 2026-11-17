@@ -44,7 +44,7 @@ const command: Command = {
 
   async execute(context: CommandContext): Promise<void> {
     const { reply, event, api } = context;
-    const senderId = event.senderID;
+    const senderId = event.senderId;
     
     let userName = 'Truth Seeker';
     try {

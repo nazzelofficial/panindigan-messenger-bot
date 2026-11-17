@@ -112,14 +112,17 @@ export interface Command {
   execute: (context: CommandContext) => Promise<void>;
 }
 
+import type { MessengerClient } from 'panindigan-automate';
+
 export interface CommandContext {
-  api: any;
+  /** The modern panindigan-automate client (same object as `client`). */
+  api: MessengerClient;
   event: any;
   args: string[];
   prefix: string;
   commands: Map<string, Command>;
   config: BotConfig;
-  sendMessage: (message: string | MessageOptions, threadID?: string) => Promise<void>;
+  sendMessage: (message: string | MessageOptions, threadId?: string) => Promise<void>;
   reply: (message: string | MessageOptions) => Promise<void>;
 }
 

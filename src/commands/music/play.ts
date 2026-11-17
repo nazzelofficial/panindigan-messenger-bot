@@ -27,8 +27,8 @@ Examples:
     }
 
     const query = args.join(' ');
-    const threadId = event.threadID;
-    const userId = event.senderID;
+    const threadId = event.threadId;
+    const userId = event.senderId;
 
     try {
       let track: any = null;

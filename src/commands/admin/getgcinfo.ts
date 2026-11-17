@@ -17,7 +17,7 @@ const command: Command = {
     const { api, event, reply } = context;
     
     try {
-      const threadInfo = await safeGetThreadInfo(api, event.threadID);
+      const threadInfo = await safeGetThreadInfo(api, event.threadId);
       
       if (!threadInfo) {
         await reply(`${decorations.fire} 『 ERROR 』
@@ -33,8 +33,8 @@ const command: Command = {
         return;
       }
       
-      const groupName = threadInfo.threadName || 'Unnamed Group';
-      const memberCount = threadInfo.participantIDs?.length || 0;
+      const groupName = threadInfo.name || 'Unnamed Group';
+      const memberCount = threadInfo.participantIds?.length || 0;
       const adminCount = threadInfo.adminIDs?.length || 0;
       const emoji = threadInfo.emoji || '👍';
       const color = threadInfo.color || 'Default';
@@ -55,7 +55,7 @@ ${decorations.fire} Detailed Information
 ◈ BASIC INFO
 ═══════════════════════════
 📝 Name: ${groupName}
-🆔 Thread ID: ${event.threadID}
+🆔 Thread ID: ${event.threadId}
 ${emoji} Emoji: ${emoji}
 🎨 Color: ${color}
 
@@ -74,9 +74,9 @@ ${emoji} Emoji: ${emoji}
 📅 Retrieved: ${timestamp}
 ═══════════════════════════`);
       
-      BotLogger.info(`Retrieved group info for ${event.threadID}`);
+      BotLogger.info(`Retrieved group info for ${event.threadId}`);
     } catch (err) {
-      BotLogger.error(`Failed to get group info for ${event.threadID}`, err);
+      BotLogger.error(`Failed to get group info for ${event.threadId}`, err);
       await reply(`${decorations.fire} 『 ERROR 』
 ═══════════════════════════
 ❌ Failed to get group info`);

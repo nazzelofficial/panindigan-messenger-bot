@@ -20,7 +20,7 @@ const command: Command = {
     const confessionNumber = Math.floor(Math.random() * 9000) + 1000;
     
     try {
-      await api.unsendMessage(event.messageID);
+      await api.unsendMessage(event.messageId);
     } catch (e) {}
     
     await reply(`

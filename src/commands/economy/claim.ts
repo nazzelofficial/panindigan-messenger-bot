@@ -11,7 +11,7 @@ export const command: Command = {
   cooldown: 5000,
 
   async execute({ api, event, reply, prefix }) {
-    const userId = ('' + event.senderID).trim();
+    const userId = ('' + event.senderId).trim();
 
     try {
       const result = await database.claimDaily(userId);

@@ -17,7 +17,7 @@ const command: Command = {
     const { api, event, args, reply, prefix } = context;
     
     try {
-      const threadInfo = await safeGetThreadInfo(api, event.threadID);
+      const threadInfo = await safeGetThreadInfo(api, event.threadId);
       
       if (!threadInfo) {
         await reply(`${decorations.fire} 『 ERROR 』
@@ -33,7 +33,7 @@ const command: Command = {
         return;
       }
       
-      const participants = threadInfo.participantIDs || [];
+      const participants = threadInfo.participantIds || [];
       
       if (participants.length === 0) {
         await reply(`${decorations.fire} 『 ERROR 』
@@ -86,13 +86,13 @@ ${decorations.fire} Tagging All Members
       }
       
       await api.sendMessage(
-        { body: message, mentions },
-        String(event.threadID)
+        String(event.threadId),
+        { type: 'text', body: message, mentions }
       );
       
-      BotLogger.info(`Tagged all ${participants.length} members in group ${event.threadID}`);
+      BotLogger.info(`Tagged all ${participants.length} members in group ${event.threadId}`);
     } catch (err) {
-      BotLogger.error(`Failed to tag all in group ${event.threadID}`, err);
+      BotLogger.error(`Failed to tag all in group ${event.threadId}`, err);
       await reply(`${decorations.fire} 『 ERROR 』
 ═══════════════════════════
 ❌ Failed to tag all members

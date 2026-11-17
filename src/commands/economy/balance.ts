@@ -12,20 +12,20 @@ export const command: Command = {
   cooldown: 3000,
 
   async execute({ api, event, args, reply, prefix }) {
-    let targetId = ('' + event.senderID).trim();
+    let targetId = ('' + event.senderId).trim();
     let isSelf = true;
     
     if (event.messageReply) {
-      targetId = ('' + event.messageReply.senderID).trim();
-      isSelf = targetId === ('' + event.senderID).trim();
+      targetId = ('' + event.messageReply.senderId).trim();
+      isSelf = targetId === ('' + event.senderId).trim();
     } else if (event.mentions && Object.keys(event.mentions).length > 0) {
       targetId = ('' + Object.keys(event.mentions)[0]).trim();
-      isSelf = targetId === ('' + event.senderID).trim();
+      isSelf = targetId === ('' + event.senderId).trim();
     } else if (args[0]) {
       const parsed = args[0].replace(/[^0-9]/g, '');
       if (parsed) {
         targetId = ('' + parsed).trim();
-        isSelf = targetId === ('' + event.senderID).trim();
+        isSelf = targetId === ('' + event.senderId).trim();
       }
     }
 

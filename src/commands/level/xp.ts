@@ -13,7 +13,7 @@ const command: Command = {
     const { event, reply } = context;
     
     try {
-      const senderId = String(event.senderID);
+      const senderId = String(event.senderId);
       const userData = await database.getOrCreateUser(senderId);
       
       if (!userData) {

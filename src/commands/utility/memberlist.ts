@@ -17,7 +17,7 @@ export const command: Command = {
     }
 
     try {
-      const threadId = ('' + event.threadID).trim();
+      const threadId = ('' + event.threadId).trim();
       const threadInfo = await safeGetThreadInfo(api, threadId);
 
       if (!threadInfo) {
@@ -25,21 +25,21 @@ export const command: Command = {
         return;
       }
 
-      const participantIDs = threadInfo.participantIDs || [];
+      const participantIds = threadInfo.participantIds || [];
       
-      if (participantIDs.length === 0) {
+      if (participantIds.length === 0) {
         await reply('❌ Could not get member list.');
         return;
       }
 
-      const userInfo = await safeGetUserInfo(api, participantIDs);
+      const userInfo = await safeGetUserInfo(api, participantIds);
 
       const adminIDs = (threadInfo.adminIDs || []).map((a: any) => a.id || a);
 
       let message = `👥 *Group Members*\n\n`;
-      message += `📊 Total: ${participantIDs.length} members\n\n`;
+      message += `📊 Total: ${participantIds.length} members\n\n`;
 
-      const members = participantIDs.map((id: string) => {
+      const members = participantIds.map((id: string) => {
         const user = userInfo[id];
         const name = user?.name || 'Unknown';
         const isAdmin = adminIDs.includes(id);

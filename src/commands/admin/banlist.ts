@@ -8,7 +8,7 @@ const command: Command = {
   aliases: ['banned', 'listbans', 'bans'],
   description: 'Check if a specific user is banned from the bot',
   category: 'admin',
-  usage: 'banlist [userID]',
+  usage: 'banlist [userId]',
   examples: ['banlist', 'banlist 123456789'],
   cooldown: 5000,
   adminOnly: true,
@@ -23,7 +23,7 @@ const command: Command = {
 
 Check if a user is banned from using bot commands.
 
-📝 Usage: ${prefix}banlist <userID>
+📝 Usage: ${prefix}banlist <userId>
 📝 Example: ${prefix}banlist 100012345678901`);
       return;
     }

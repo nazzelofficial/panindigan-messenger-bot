@@ -31,7 +31,7 @@ const command: Command = {
         allMessages: [{ user: prompt }],
         stream: false,
         clickedContinue: false,
-        uuid: "user-" + event.senderID
+        uuid: "user-" + event.senderId
       }, {
         headers: {
             'Content-Type': 'application/json',

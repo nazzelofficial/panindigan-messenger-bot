@@ -11,7 +11,7 @@ const command: Command = {
 
   async execute(context: CommandContext): Promise<void> {
     const { reply, event, api } = context;
-    const threadId = event.threadID;
+    const threadId = event.threadId;
     
     try {
       const threadInfo = await safeGetThreadInfo(api, threadId);
@@ -27,7 +27,7 @@ const command: Command = {
       }
       
       const name = threadInfo.name || 'Unnamed';
-      const members = threadInfo.participantIDs?.length || 0;
+      const members = threadInfo.participantIds?.length || 0;
       const admins = threadInfo.adminIDs?.length || 0;
       const emoji = threadInfo.emoji || '💬';
       

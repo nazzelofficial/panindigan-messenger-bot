@@ -38,8 +38,8 @@ export const command: Command = {
     }
 
     const url = args[0];
-    const threadId = event.threadID;
-    const userId = event.senderID;
+    const threadId = event.threadId;
+    const userId = event.senderId;
 
     if (!musicService.isPlaylistUrl(url)) {
       await reply(`┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓

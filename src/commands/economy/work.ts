@@ -35,7 +35,7 @@ export const command: Command = {
   cooldown: 60000,
 
   async execute({ api, event, reply, prefix }) {
-    const senderId = ('' + event.senderID).trim();
+    const senderId = ('' + event.senderId).trim();
 
     try {
       const userInfo = await safeGetUserInfo(api, senderId);

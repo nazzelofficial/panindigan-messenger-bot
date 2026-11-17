@@ -15,8 +15,8 @@ const command: Command = {
   async execute(context: CommandContext): Promise<void> {
     const { api, event, reply, args } = context;
     
-    const targetThread = args[0] ? String(args[0]).trim() : String(event.threadID);
-    const botId = String(api.getCurrentUserID());
+    const targetThread = args[0] ? String(args[0]).trim() : String(event.threadId);
+    const botId = String(api.getSession().userId);
     
     try {
       let groupName = 'this group';
@@ -51,7 +51,7 @@ Goodbye everyone! 💫
       
       await new Promise(r => setTimeout(r, 1000));
       
-      await api.removeUserFromGroup(botId, targetThread);
+      await api.removeParticipant(targetThread, botId);
       
       BotLogger.info(`Bot left group: ${targetThread} (${groupName})`);
       

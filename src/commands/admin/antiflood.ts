@@ -18,7 +18,7 @@ const command: Command = {
     
     const option = args[0]?.toLowerCase();
     
-    const antifloodKey = `antiflood_${event.threadID}`;
+    const antifloodKey = `antiflood_${event.threadId}`;
     const currentSetting = await database.getSetting<string>(antifloodKey);
     const isEnabled = currentSetting !== 'false';
     
@@ -50,7 +50,7 @@ ${decorations.fire} Flood Protection
     try {
       await database.setSetting(antifloodKey, String(enable));
       
-      BotLogger.info(`Anti-flood ${enable ? 'enabled' : 'disabled'} for group ${event.threadID}`);
+      BotLogger.info(`Anti-flood ${enable ? 'enabled' : 'disabled'} for group ${event.threadId}`);
       
       await reply(`🌊 『 ANTI-FLOOD ${enable ? 'ENABLED' : 'DISABLED'} 』 🌊
 ═══════════════════════════

@@ -61,8 +61,8 @@ importers:
         specifier: ^4.104.0
         version: 4.104.0(ws@8.23.0)(zod@3.25.76)
       panindigan-automate:
-        specifier: ^0.1.6
-        version: 0.1.6
+        specifier: file:..\panindigan-automate
+        version: file:../panindigan-automate
       pg:
         specifier: ^8.23.1
         version: 8.23.1
@@ -1476,9 +1476,10 @@ packages:
   pako@1.0.11:
     resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
 
-  panindigan-automate@0.1.6:
-    resolution: {integrity: sha512-PCSdxqrFfz9gGWqE2pjwUuEbFFw7f18KMU16n0x+1+uZluQLuplsy1//RN5NgewKQLP3l4DW/DlNt7aKWPAaQw==}
+  panindigan-automate@file:../panindigan-automate:
+    resolution: {directory: ../panindigan-automate, type: directory}
     engines: {bun: '>=1.1.0', node: '>=22.0.0'}
+    hasBin: true
 
   parse-bmfont-ascii@1.0.6:
     resolution: {integrity: sha512-U4RrVsUFCleIOBsIGYOMKjn9PavsGOXxbvYGtMOEfnId0SVNsgehXh1DxUdVPLoxd5mvcEtvmKs2Mmf0Mpa1ZA==}
@@ -3549,7 +3550,7 @@ snapshots:
 
   pako@1.0.11: {}
 
-  panindigan-automate@0.1.6:
+  panindigan-automate@file:../panindigan-automate:
     dependencies:
       lru-cache: 11.5.3
       mqtt: 5.16.1
@@ -3557,6 +3558,7 @@ snapshots:
       socks: 2.8.10
       tough-cookie: 6.1.0
       undici: 8.12.4
+      ws: 8.23.0
       zod: 4.6.7
     transitivePeerDependencies:
       - bufferutil

@@ -19,7 +19,7 @@ export const command: Command = {
   cooldown: 10000,
 
   async execute({ api, event, args, reply, prefix }) {
-    const userId = ('' + event.senderID).trim();
+    const userId = ('' + event.senderId).trim();
     const question = args.join(' ').trim();
 
     if (!question) {

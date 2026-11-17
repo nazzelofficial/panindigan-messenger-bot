@@ -10,7 +10,7 @@ export const command: Command = {
   examples: ['inventory'],
   cooldown: 5000,
   async execute({ reply, event }) {
-    const items = await database.getSetting(`inventory_${event.senderID}`) || [];
+    const items = await database.getSetting(`inventory_${event.senderId}`) || [];
     
     if (!Array.isArray(items) || items.length === 0) {
       return reply('🎒 INVENTORY\n\nYour inventory is empty!\n\n💡 Buy items from the shop.');

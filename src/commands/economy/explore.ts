@@ -21,7 +21,7 @@ const command: Command = {
 
   async execute(context: CommandContext): Promise<void> {
     const { reply, event } = context;
-    const userId = event.senderID;
+    const userId = event.senderId;
 
     const location = locations[Math.floor(Math.random() * locations.length)];
     const reward = location.rewards[Math.floor(Math.random() * location.rewards.length)];

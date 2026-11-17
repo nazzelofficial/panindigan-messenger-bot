@@ -55,7 +55,7 @@ ${decorations.fire} Enable/Disable Commands
     }
     
     try {
-      const toggleKey = `disabled_${event.threadID}_${cmd.name}`;
+      const toggleKey = `disabled_${event.threadId}_${cmd.name}`;
       const currentState = await database.getSetting<string>(toggleKey);
       const isDisabled = currentState === 'true';
       
@@ -77,7 +77,7 @@ ${decorations.fire} Enable/Disable Commands
       const statusEmoji = newState ? '🔴' : '🟢';
       const statusText = newState ? 'DISABLED' : 'ENABLED';
       
-      BotLogger.info(`Toggled command ${cmd.name} to ${statusText} for group ${event.threadID}`);
+      BotLogger.info(`Toggled command ${cmd.name} to ${statusText} for group ${event.threadId}`);
       
       await reply(`🔄 『 COMMAND ${statusText} 』 🔄
 ═══════════════════════════

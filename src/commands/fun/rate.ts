@@ -31,7 +31,7 @@ ${decorations.sparkle} I'll rate anything for you!
 
     const thing = args.join(' ');
     
-    const seed = (thing.toLowerCase() + event.senderID).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+    const seed = (thing.toLowerCase() + event.senderId).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
     const rating = (seed % 10) + 1;
 
     let emoji = '';

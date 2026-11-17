@@ -21,7 +21,7 @@ export const command: Command = {
     const result = results[Math.floor(Math.random() * results.length)];
     const amount = Math.floor(Math.random() * (result.max - result.min + 1)) + result.min;
     
-    await database.updateUserCoins(event.senderID, amount);
+    await database.updateUserCoins(event.senderId, amount);
     
     await reply(`⛏️ MINING\n\nYou found ${result.emoji} ${result.name}!\n+${amount} coins 💰`);
   },

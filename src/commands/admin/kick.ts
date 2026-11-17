@@ -7,15 +7,15 @@ const command: Command = {
   aliases: ['boot'],
   description: 'Kick a member from the group chat',
   category: 'admin',
-  usage: 'kick <@mention|userID>',
+  usage: 'kick <@mention|userId>',
   examples: ['kick @user', 'kick 123456789'],
   adminOnly: true,
   cooldown: 5000,
 
   async execute(context: CommandContext): Promise<void> {
     const { api, event, args, reply, prefix } = context;
-    const threadId = String(event.threadID);
-    const botId = String(api.getCurrentUserID());
+    const threadId = String(event.threadId);
+    const botId = String(api.getSession().userId);
     
     let targetId: string | null = null;
     
@@ -33,11 +33,11 @@ const command: Command = {
 Kick a member from the group.
 
 📝 Usage: ${prefix}kick @user
-📝 Usage: ${prefix}kick <userID>`);
+📝 Usage: ${prefix}kick <userId>`);
       return;
     }
     
-    if (targetId === String(event.senderID)) {
+    if (targetId === String(event.senderId)) {
       await reply(`┏━━━━━━━━━━━━━━━━━━━┓
 ┃  ❌ DENIED
 ┗━━━━━━━━━━━━━━━━━━━┛
@@ -79,7 +79,7 @@ Please make bot admin first.`);
       const userInfo = await safeGetUserInfo(api, targetId);
       const userName = userInfo[targetId]?.name || 'Unknown User';
       
-      await api.removeUserFromGroup(targetId, threadId);
+      await api.removeParticipant(threadId, targetId);
       
       const timestamp = new Date().toLocaleString('en-PH', {
         timeZone: 'Asia/Manila',

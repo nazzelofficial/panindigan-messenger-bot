@@ -84,7 +84,7 @@ function getRandomGoodbyeQuote(): string {
 }
 
 export async function generateProfessionalWelcome(
-  api: any,
+  client: import('panindigan-automate').MessengerClient,
   threadId: string,
   userId: string,
   userName: string,
@@ -95,19 +95,19 @@ export async function generateProfessionalWelcome(
   let userProfile = userName || 'New Member';
   
   try {
-    const threadInfo = await api.getThreadInfo(threadId);
+    const threadInfo = await client.getThread(threadId);
     if (threadInfo) {
-      groupName = threadInfo.threadName || threadInfo.name || '';
-      const participantCount = threadInfo.participantIDs?.length || 
-                               threadInfo.participants?.length || 
-                               (threadInfo.userInfo?.length) || 0;
+      groupName = threadInfo.name ?? '';
+      const participantCount = threadInfo.participantIds?.length ||
+                               threadInfo.participants?.length ||
+                               0;
       memberCount = participantCount;
     }
-    
+
     try {
-      const userInfo = await api.getUserInfo(userId);
-      if (userInfo && userInfo[userId]) {
-        userProfile = userInfo[userId].name || userInfo[userId].firstName || userName;
+      const profile = await client.getUser(userId);
+      if (profile && profile.name) {
+        userProfile = profile.name;
       }
     } catch (e) {
       BotLogger.debug(`Could not get user info: ${e}`);
@@ -166,7 +166,7 @@ ${greeting}! ${greetingEmoji}
 }
 
 export async function generateProfessionalLeave(
-  api: any,
+  client: import('panindigan-automate').MessengerClient,
   threadId: string,
   userId: string,
   userName?: string
@@ -180,20 +180,20 @@ export async function generateProfessionalLeave(
   let userXP = 0;
   
   try {
-    const threadInfo = await api.getThreadInfo(threadId);
+    const threadInfo = await client.getThread(threadId);
     if (threadInfo) {
-      groupName = threadInfo.threadName || threadInfo.name || '';
-      const participantCount = threadInfo.participantIDs?.length || 
-                               threadInfo.participants?.length || 
-                               (threadInfo.userInfo?.length) || 0;
+      groupName = threadInfo.name ?? '';
+      const participantCount = threadInfo.participantIds?.length ||
+                               threadInfo.participants?.length ||
+                               0;
       memberCount = participantCount;
     }
-    
+
     if (!userName || userName === 'Member') {
       try {
-        const userInfo = await api.getUserInfo(userId);
-        if (userInfo && userInfo[userId]) {
-          userProfile = userInfo[userId].name || userInfo[userId].firstName || 'Member';
+        const profile = await client.getUser(userId);
+        if (profile && profile.name) {
+          userProfile = profile.name;
         }
       } catch (e) {
         BotLogger.debug(`Could not get user info for ${userId}`);

@@ -25,7 +25,7 @@ const command: Command = {
 
   async execute(context: CommandContext): Promise<void> {
     const { api, event, reply } = context;
-    const senderId = ('' + event.senderID).trim();
+    const senderId = ('' + event.senderId).trim();
 
     const name = waifuNames[Math.floor(Math.random() * waifuNames.length)];
     const trait = waifuTraits[Math.floor(Math.random() * waifuTraits.length)];

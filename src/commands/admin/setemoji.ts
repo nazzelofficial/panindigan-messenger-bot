@@ -24,12 +24,8 @@ export const command: Command = {
     const emoji = args[0];
 
     try {
-      const threadId = ('' + event.threadID).trim();
-      if (api.changeThreadEmoji) {
-        await api.changeThreadEmoji(emoji, threadId);
-      } else {
-        await api.changeThreadColor(emoji, threadId);
-      }
+      const threadId = ('' + event.threadId).trim();
+      await api.changeGroupEmoji(threadId, emoji);
 
       await reply(`✅ *Group Emoji Changed*\n\n🎨 New emoji: ${emoji}`);
     } catch (error) {

@@ -9,7 +9,7 @@ const command: Command = {
   aliases: ['warning', 'strike'],
   description: 'Warn a user for rule violations',
   category: 'admin',
-  usage: 'warn <@mention|userID> [reason]',
+  usage: 'warn <@mention|userId> [reason]',
   examples: ['warn @user Spamming', 'warn 123456789 Breaking rules'],
   adminOnly: true,
   cooldown: 5000,
@@ -51,13 +51,13 @@ ${decorations.fire} Issue a warning
       const userInfo = await safeGetUserInfo(api, targetId);
       const userName = userInfo[targetId]?.name || 'Unknown User';
       
-      const warningsKey = `warnings_${event.threadID}_${targetId}`;
+      const warningsKey = `warnings_${event.threadId}_${targetId}`;
       const existingWarnings = await database.getSetting<string>(warningsKey);
       const warnings = existingWarnings ? JSON.parse(existingWarnings) : [];
       
       const newWarning = {
         reason,
-        warnedBy: String(event.senderID),
+        warnedBy: String(event.senderId),
         timestamp: new Date().toISOString()
       };
       

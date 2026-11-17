@@ -17,7 +17,7 @@ export const command: Command = {
     }
 
     try {
-      const threadId = ('' + event.threadID).trim();
+      const threadId = ('' + event.threadId).trim();
       
       let threadInfo;
       try {

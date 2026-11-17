@@ -16,7 +16,7 @@ const command: Command = {
     const { event, reply, prefix } = context;
     
     try {
-      const lockKey = `locked_${event.threadID}`;
+      const lockKey = `locked_${event.threadId}`;
       const isLocked = await database.getSetting(lockKey);
       
       if (isLocked !== 'true') {
@@ -38,7 +38,7 @@ const command: Command = {
         timeStyle: 'short'
       });
       
-      BotLogger.info(`Unlocked group ${event.threadID}`);
+      BotLogger.info(`Unlocked group ${event.threadId}`);
       
       await reply(`╔══════════════════════════╗
 ║   🔓 GROUP UNLOCKED 🔓   ║
@@ -54,7 +54,7 @@ const command: Command = {
 ║ ✨ Everyone can chat now!║
 ╚══════════════════════════╝`);
     } catch (err) {
-      BotLogger.error(`Failed to unlock group ${event.threadID}`, err);
+      BotLogger.error(`Failed to unlock group ${event.threadId}`, err);
       await reply(`╔══════════════════════════╗
 ║      ❌ ERROR ❌      ║
 ╠══════════════════════════╣

@@ -6,7 +6,7 @@ const command: Command = {
   aliases: ['add', 'adduser'],
   description: 'Add member(s) to the group using profile link or user ID',
   category: 'admin',
-  usage: 'addmember <profile_link|userID> [more...]',
+  usage: 'addmember <profile_link|userId> [more...]',
   examples: [
     'addmember https://facebook.com/profile.php?id=123456789',
     'addmember 123456789',
@@ -18,7 +18,7 @@ const command: Command = {
     const { api, event, args, reply } = context;
     
     if (args.length === 0) {
-      await reply('❌ Please provide user ID(s) or profile link(s) to add.\nUsage: addmember <profile_link|userID>');
+      await reply('❌ Please provide user ID(s) or profile link(s) to add.\nUsage: addmember <profile_link|userId>');
       return;
     }
     
@@ -40,11 +40,11 @@ const command: Command = {
     
     await reply(`🔄 Adding ${userIds.length} member(s)...`);
     
-    const threadId = ('' + event.threadID).trim();
+    const threadId = ('' + event.threadId).trim();
     for (const userId of userIds) {
       try {
         const normalizedUserId = ('' + userId).trim();
-        await api.addUserToGroup(normalizedUserId, threadId);
+        await api.addParticipant(threadId, normalizedUserId);
         results.success.push(userId);
         BotLogger.info(`Added user ${userId} to group ${threadId}`);
       } catch (error) {

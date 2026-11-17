@@ -7,15 +7,15 @@ const command: Command = {
   aliases: ['makeadmin', 'addadmin'],
   description: 'Promote a user to group admin',
   category: 'admin',
-  usage: 'promote <@mention|userID>',
+  usage: 'promote <@mention|userId>',
   examples: ['promote @user', 'promote 123456789'],
   adminOnly: true,
   cooldown: 5000,
 
   async execute(context: CommandContext): Promise<void> {
     const { api, event, args, reply, prefix } = context;
-    const threadId = String(event.threadID);
-    const botId = String(api.getCurrentUserID());
+    const threadId = String(event.threadId);
+    const botId = String(api.getSession().userId);
 
     let targetId: string | null = null;
 
@@ -33,7 +33,7 @@ const command: Command = {
 Make a user group admin.
 
 📝 Usage: ${prefix}promote @user
-📝 Usage: ${prefix}promote <userID>`);
+📝 Usage: ${prefix}promote <userId>`);
       return;
     }
 
@@ -49,7 +49,7 @@ Could not fetch group info. Please try again.`);
       }
       
       const adminIDs = (threadInfo.adminIDs || []).map((a: any) => String(a.id || a));
-      const participantIDs = (threadInfo.participantIDs || []).map((id: any) => String(id));
+      const participantIds = (threadInfo.participantIds || []).map((id: any) => String(id));
 
       const isBotAdmin = botGroupAdminStatus(threadInfo, botId);
       if (isBotAdmin === false) {
@@ -61,7 +61,7 @@ Bot must be admin to promote users.`);
       }
       // null → admin list unavailable (panindigan-automate): proceed, Facebook enforces permissions
 
-      if (!participantIDs.includes(targetId)) {
+      if (!participantIds.includes(targetId)) {
         await reply(`┏━━━━━━━━━━━━━━━━━━━┓
 ┃  ❌ ERROR
 ┗━━━━━━━━━━━━━━━━━━━┛

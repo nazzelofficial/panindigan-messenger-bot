@@ -9,7 +9,7 @@ const command: Command = {
   aliases: ['searchuser', 'lookupuser'],
   description: 'Find a user in the database by their ID',
   category: 'admin',
-  usage: 'finduser <userID>',
+  usage: 'finduser <userId>',
   examples: ['finduser 123456789'],
   ownerOnly: true,
   cooldown: 5000,
@@ -25,7 +25,7 @@ ${decorations.fire} Search User Database
 
 ◈ USAGE
 ═══════════════════════════
-➤ ${prefix}finduser <userID>
+➤ ${prefix}finduser <userId>
 
 ◈ EXAMPLE
 ═══════════════════════════

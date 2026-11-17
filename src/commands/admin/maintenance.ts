@@ -17,7 +17,7 @@ const command: Command = {
 
   async execute(context: CommandContext): Promise<void> {
     const { args, reply, event, api } = context;
-    const senderId = event.senderID;
+    const senderId = event.senderId;
 
     if (args.length === 0) {
       await reply(`
