@@ -1,6 +1,6 @@
 {
   "name": "nazzel-messenger-userbot",
-  "version": "2.13.0",
+  "version": "2.13.1",
   "description": "Advanced Facebook Messenger User-Bot with TypeScript, PostgreSQL, and comprehensive logging",
   "main": "dist/main.js",
   "type": "module",
@@ -39,7 +39,7 @@
     "node-fetch": "^3.3.2",
     "nsfwjs": "^4.4.0",
     "openai": "^4.104.0",
-    "panindigan-automate": "^0.2.6",
+    "panindigan-automate": "^0.2.7",
     "pg": "^8.23.1",
     "undici": "^8.12.4",
     "unzipper": "^0.12.5",

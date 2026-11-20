@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.13.1] - 2026-11-20
+
+### Fixed
+
+- Custom per-group prefixes now take effect. The `prefix` command stores the value under `prefix_<threadId>`, but message handling was reading the unused `threads.prefix` column — so changing the prefix made commands stop responding.
+- `P!admin` now lists admin commands (`admin` alias added to `admincmds`).
+- Startup now warns when no `OWNER_ID`, `ownerIds`, or `adminIds` are configured, so denied admin commands are explainable.
+
 ## [2.13.0] - 2026-11-15
 
 ### Changed

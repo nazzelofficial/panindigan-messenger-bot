@@ -164,6 +164,15 @@ async function main(): Promise<void> {
     console.log(`                    - ${category}: ${count} commands`);
   }
   
+  // Admin commands are decided only by configured owner/admin IDs (the
+  // library does not expose a thread admin list). Warn when none exist so a
+  // silent "no permission" is explainable instead of looking like a dead bot.
+  const configuredOwners = (config.bot as any).ownerIds || [];
+  const configuredAdmins = (config.bot as any).adminIds || [];
+  if (!process.env.OWNER_ID && configuredOwners.length === 0 && configuredAdmins.length === 0) {
+    BotLogger.warn('No OWNER_ID / ownerIds / adminIds configured - all admin-only commands will be denied');
+  }
+
   console.log('  [MODERATION]      Bad words filter loaded');
   console.log('  [MAINTENANCE]     Maintenance system ready');
   console.log('  [EVENTS]          Event handlers initialized');
@@ -451,7 +460,14 @@ async function handleMessage(client: MessengerClient, event: any, currentUserId?
   
   const isSelfMessage = senderId === userId;
   const thread = await database.getThread(threadId);
-  const customPrefix = thread?.prefix || prefix;
+  // BUG FIX: the `prefix` command writes the per-group prefix to
+  // `settings` under `prefix_<threadId>`, but this handler used to read only
+  // `thread.prefix` (the threads table column that command never writes).
+  // Result: after `P!prefix admin`, "admin..." commands were ignored and
+  // nothing came out. Read the same key the command writes, then fall back
+  // to the legacy column and the global default.
+  const storedPrefix = await database.getSetting<string>(`prefix_${threadId}`);
+  const customPrefix = storedPrefix || thread?.prefix || prefix;
   
   // Check if group is locked FIRST - before any other processing
   if (!isSelfMessage) {
