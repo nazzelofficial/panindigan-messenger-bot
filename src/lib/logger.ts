@@ -4,6 +4,10 @@ import fs from 'fs';
 import path from 'path';
 import config from '../../config.json' with { type: 'json' };
 
+// Chalk disables colors when stdout is not a TTY (Render, Docker, CI). Force
+// ANSI output so hosted logs stay colored instead of turning plain grey.
+chalk.level = 3;
+
 const logsDir = './logs';
 if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
@@ -219,9 +223,16 @@ export class BotLogger {
   }
 
   static command(commandName: string, userId: string, threadId: string, args: string[]): void {
-    const timestamp = chalk.gray(`${getTimestamp()}`);
-    console.log(`${timestamp}    ${chalk.green('COMMAND:')} ${chalk.cyan(commandName)} ${chalk.gray('|')} ${chalk.yellow('User:')} ${chalk.white(userId)} ${chalk.gray('|')} ${chalk.yellow('Thread:')} ${chalk.white(threadId)}`);
-    commandLogger.info(`Command: ${commandName} | User: ${userId} | Thread: ${threadId} | Args: ${args.join(' ') || 'none'}`);
+    const timestamp = chalk.gray(getTimestamp());
+    const who = chalk.white(userId);
+    const what = chalk.cyan(commandName);
+    const where = chalk.white(threadId);
+    const suffix = args.length > 0 ? ` with args: ${chalk.white(args.join(' '))}` : '';
+    const plainSuffix = args.length > 0 ? ` with args: ${args.join(' ')}` : '';
+
+    // Read as a sentence: "User <id> used <command> in thread <id>".
+    console.log(`${timestamp}    ${chalk.green('COMMAND:')} User ${who} used ${what} in thread ${where}${suffix}`);
+    commandLogger.info(`User ${userId} used ${commandName} in thread ${threadId}${plainSuffix}`);
   }
 
   static event(type: string, data: Record<string, unknown>): void {

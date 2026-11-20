@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom per-group prefixes now take effect. The `prefix` command stores the value under `prefix_<threadId>`, but message handling was reading the unused `threads.prefix` column — so changing the prefix made commands stop responding.
 - `P!admin` now lists admin commands (`admin` alias added to `admincmds`).
 - Startup now warns when no `OWNER_ID`, `ownerIds`, or `adminIds` are configured, so denied admin commands are explainable.
+- Console logs keep their ANSI colors on non-TTY hosts such as Render (`chalk.level = 3`), instead of falling back to plain grey text.
+- Command logs now read as a sentence: `User <id> used <command> in thread <id>` (with args when present), instead of the old pipe-separated `COMMAND: help | User: ... | Thread: ...`.
 
 ## [2.13.0] - 2026-11-15
 
