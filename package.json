@@ -4,7 +4,7 @@
   "description": "Advanced Facebook Messenger User-Bot with TypeScript, PostgreSQL, and comprehensive logging",
   "main": "dist/main.js",
   "type": "module",
-  "packageManager": "pnpm@11.9.0",
+  "packageManager": "pnpm@12.21.0",
   "scripts": {
     "start": "node --max-old-space-size=4096 dist/main.js",
     "dev": "tsx watch src/main.ts",
@@ -39,7 +39,7 @@
     "node-fetch": "^3.3.2",
     "nsfwjs": "^4.4.0",
     "openai": "^4.104.0",
-    "panindigan-automate": "^0.2.9",
+    "panindigan-automate": "^0.3.0",
     "pg": "^8.23.1",
     "undici": "^8.12.4",
     "unzipper": "^0.12.5",

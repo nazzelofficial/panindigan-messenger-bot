@@ -1,3 +1,170 @@
+---
+lockfileVersion: '9.0'
+
+importers:
+
+  .:
+    configDependencies: {}
+    packageManagerDependencies:
+      pnpm:
+        specifier: 12.21.0
+        version: 12.21.0
+
+packages:
+
+  '@pnpm/exe.android-arm64@12.21.0':
+    resolution: {integrity: sha512-iaWidxR5B9NUBpwMznCQu1yUpKB6BjTY5BYX2lORj76VsfINdj8Z8XWSzSNrGI8qlxa28Jzdp5fiaspzOaJZlA==}
+    cpu: [arm64]
+    os: [android]
+
+  '@pnpm/exe.android-x64@12.21.0':
+    resolution: {integrity: sha512-35e5v3wlwjIYxDywq+R6/z8CE4gLOEgRxt18yqz1tMRLmx2mnW+CFJI2Q8+srTNjn7gykXUC0x1k195JNikC5A==}
+    cpu: [x64]
+    os: [android]
+
+  '@pnpm/exe.darwin-arm64@12.21.0':
+    resolution: {integrity: sha512-F5OyMX/6zLSowpTZEQRojbCmPS1Pq+fyRaIinslsIe6Glh3qbyQ52u+Fe0eEzSaRuIbWZkXmAAXSWh6Q5Wrlgg==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@pnpm/exe.darwin-x64@12.21.0':
+    resolution: {integrity: sha512-EzpvcsaE6hrrgYeEiAFYd2rSgFybYyxXhkAY7K3y6Hg3loVfcyJ81hHczpFzi8lW5RXtUlFECRPZ8ZAMRFQYYg==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@pnpm/exe.freebsd-x64@12.21.0':
+    resolution: {integrity: sha512-wNjuEnmdLks4aayPu/QZWQ5tQM9Jn+odUp/vwQM8BXRYoulkTZhtZTHoD60N6mUdLWef1hgUeUh8llNGEUsimw==}
+    cpu: [x64]
+    os: [freebsd]
+
+  '@pnpm/exe.linux-arm64-musl@12.21.0':
+    resolution: {integrity: sha512-Ceit9zn4g5ZqCJtx1fV8eJE7p8aeXMrGZ+Dc01vRqZLIUNgNeI+Ur0ruyqxtsnJx6rGADyXzohumxPLHjaJ5AQ==}
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
+
+  '@pnpm/exe.linux-arm64@12.21.0':
+    resolution: {integrity: sha512-4Oj/iF2TDCe2lcH0n4TupPR5sSdrNLclJB6xBElLMPCUOAvBhdf2rRlSaO5M4erJ6g4Fyy7YTXTpcmfFsKyxEA==}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  '@pnpm/exe.linux-ppc64@12.21.0':
+    resolution: {integrity: sha512-s2o7rdSDeUTBFsNqxptpZXlTgT6cojmMVUOvTQvFNSv6Easian02ha4tR32fwwD97Au4YzIIjMCwywCF4D82Sw==}
+    cpu: [ppc64]
+    os: [linux]
+    libc: [glibc]
+
+  '@pnpm/exe.linux-riscv64@12.21.0':
+    resolution: {integrity: sha512-EYv3GzxeBTITCuM3yGHHbpRFpUvyulkXpQ6LsjKAQNL3iaba1E6h9iDmlouLb3Io4AMMsfdk0/uG6poQ41uewA==}
+    cpu: [riscv64]
+    os: [linux]
+    libc: [glibc]
+
+  '@pnpm/exe.linux-s390x@12.21.0':
+    resolution: {integrity: sha512-8VXGNGVNEfs7pL9GTZOzFxjFEnMt4WL3rLOADR5/kPQ7ROTV9GfpVI2DPO/zArXFSkvfc9Zad/WypHLbvzoaTQ==}
+    cpu: [s390x]
+    os: [linux]
+    libc: [glibc]
+
+  '@pnpm/exe.linux-x64-musl@12.21.0':
+    resolution: {integrity: sha512-MnC5vpIXYubhDZCgCwlfJMg7Cg6HupN2IuouT9gD/tUmOfVdQYqeyYccWbthyo/Jeto8de1oQlxeRN1+1Hl2DQ==}
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
+  '@pnpm/exe.linux-x64@12.21.0':
+    resolution: {integrity: sha512-8eufCjHXspKbNS/kh8q4Q0gqJoOuvC4Q5pgos6XS8By/nAMtP+jf8F1Cw9er840kfAX+PJ/ts+A9qnLE91rvXQ==}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  '@pnpm/exe.netbsd-x64@12.21.0':
+    resolution: {integrity: sha512-eyh1M8hQZCkLWxuva7S/fc1SbFbgqg0/5di0dgWmyiuc2Io3dbWVihDun8X+XM8zsR5uhIDvvZpbS9aZQbCovg==}
+    cpu: [x64]
+    os: [netbsd]
+
+  '@pnpm/exe.win32-arm64@12.21.0':
+    resolution: {integrity: sha512-7xTxxUXo/grRLivSeIl6B21gnsz7ooe5EMPcJmQqwxc8WLJVReN8MzrlHru8bqXfVr4X3+6ZGZscntKenlCBqQ==}
+    cpu: [arm64]
+    os: [win32]
+
+  '@pnpm/exe.win32-x64@12.21.0':
+    resolution: {integrity: sha512-9TpkJemVApxJ1Z1w0ZFGN+AuSx4nJOqXSJUqMqDvaXTYwGOzvBiiWdFP9GN0ketiWCQS1Q0/pza2E7I3pP0OBQ==}
+    cpu: [x64]
+    os: [win32]
+
+  pnpm@12.21.0:
+    resolution: {integrity: sha512-Zv2CeO4ok1zpUXktNDZ/869cQyonVkRYIwKVM4NbjaUpu+C+UTCv1W7QcT+4eJ5Hutgtk71a4v5UsVVi1idu8A==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+snapshots:
+
+  '@pnpm/exe.android-arm64@12.21.0':
+    optional: true
+
+  '@pnpm/exe.android-x64@12.21.0':
+    optional: true
+
+  '@pnpm/exe.darwin-arm64@12.21.0':
+    optional: true
+
+  '@pnpm/exe.darwin-x64@12.21.0':
+    optional: true
+
+  '@pnpm/exe.freebsd-x64@12.21.0':
+    optional: true
+
+  '@pnpm/exe.linux-arm64-musl@12.21.0':
+    optional: true
+
+  '@pnpm/exe.linux-arm64@12.21.0':
+    optional: true
+
+  '@pnpm/exe.linux-ppc64@12.21.0':
+    optional: true
+
+  '@pnpm/exe.linux-riscv64@12.21.0':
+    optional: true
+
+  '@pnpm/exe.linux-s390x@12.21.0':
+    optional: true
+
+  '@pnpm/exe.linux-x64-musl@12.21.0':
+    optional: true
+
+  '@pnpm/exe.linux-x64@12.21.0':
+    optional: true
+
+  '@pnpm/exe.netbsd-x64@12.21.0':
+    optional: true
+
+  '@pnpm/exe.win32-arm64@12.21.0':
+    optional: true
+
+  '@pnpm/exe.win32-x64@12.21.0':
+    optional: true
+
+  pnpm@12.21.0:
+    optionalDependencies:
+      '@pnpm/exe.android-arm64': 12.21.0
+      '@pnpm/exe.android-x64': 12.21.0
+      '@pnpm/exe.darwin-arm64': 12.21.0
+      '@pnpm/exe.darwin-x64': 12.21.0
+      '@pnpm/exe.freebsd-x64': 12.21.0
+      '@pnpm/exe.linux-arm64': 12.21.0
+      '@pnpm/exe.linux-arm64-musl': 12.21.0
+      '@pnpm/exe.linux-ppc64': 12.21.0
+      '@pnpm/exe.linux-riscv64': 12.21.0
+      '@pnpm/exe.linux-s390x': 12.21.0
+      '@pnpm/exe.linux-x64': 12.21.0
+      '@pnpm/exe.linux-x64-musl': 12.21.0
+      '@pnpm/exe.netbsd-x64': 12.21.0
+      '@pnpm/exe.win32-arm64': 12.21.0
+      '@pnpm/exe.win32-x64': 12.21.0
+
+---
 lockfileVersion: '9.0'
 
 settings:
@@ -14,7 +181,7 @@ importers:
     dependencies:
       '@distube/ytdl-core':
         specifier: ^4.16.12
-        version: 4.16.12
+        version: 4.16.12(supports-color@7.2.0)
       '@ffmpeg-installer/ffmpeg':
         specifier: ^1.1.0
         version: 1.1.0
@@ -29,7 +196,7 @@ importers:
         version: 7.0.1(bare-buffer@3.7.3)
       axios:
         specifier: ^1.21.1
-        version: 1.21.1
+        version: 1.21.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
       chalk:
         specifier: ^5.6.2
         version: 5.6.2
@@ -38,16 +205,16 @@ importers:
         version: 16.6.1
       express:
         specifier: ^4.22.3
-        version: 4.22.3
+        version: 4.22.3(supports-color@7.2.0)
       file-type:
         specifier: ^22.3.0
-        version: 22.3.0
+        version: 22.3.0(supports-color@7.2.0)
       fluent-ffmpeg:
         specifier: ^2.1.3
         version: 2.1.3
       jimp:
         specifier: ^1.6.1
-        version: 1.6.1
+        version: 1.6.1(supports-color@7.2.0)
       node-cache:
         specifier: ^5.1.2
         version: 5.1.2
@@ -61,8 +228,8 @@ importers:
         specifier: ^4.104.0
         version: 4.104.0(ws@8.23.0)(zod@3.25.76)
       panindigan-automate:
-        specifier: ^0.2.9
-        version: 0.2.9
+        specifier: ^0.3.0
+        version: 0.3.0(supports-color@7.2.0)
       pg:
         specifier: ^8.23.1
         version: 8.23.1
@@ -868,7 +1035,6 @@ packages:
 
   concat-stream@2.0.0:
     resolution: {integrity: sha512-MWufYdFw53ccGjCA+Ol7XJYpAlW6/prSMzuPOTRnJGcGzuhLn4Scrz7qf6o8bROZ514ltazcIFJZevcfbo0x7A==}
-    engines: {'0': node >= 6.0}
 
   content-disposition@0.5.4:
     resolution: {integrity: sha512-FveZTNuGw04cxlAiWbzi6zTAL/lhehaWbTtgluJh4/E95DqMwTmha3KZN1aAWA8cFIhHzMZUvLevkw5Rqk+tSQ==}
@@ -1498,8 +1664,8 @@ packages:
   pako@1.0.11:
     resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
 
-  panindigan-automate@0.2.9:
-    resolution: {integrity: sha512-hpdn1DxEixS0x0xcCywOrAccW0gPwccjmMP0vOd1w1PpAUz+xqi0iLHMFlcSX1rIKXi2WfWobX1HKdBYNFGXKQ==}
+  panindigan-automate@0.3.0:
+    resolution: {integrity: sha512-63PgYj9XgWnDI5zcxZZoZjfYiv9F8PfIh7mF5CbhfctQfe4t9qMK7NNhioxerQXlvqIqGUPocddbj434ztYELw==}
     engines: {bun: '>=1.1.0', node: '>=22.0.0'}
     hasBin: true
 
@@ -2079,10 +2245,10 @@ snapshots:
       enabled: 2.0.0
       kuler: 2.0.0
 
-  '@distube/ytdl-core@4.16.12':
+  '@distube/ytdl-core@4.16.12(supports-color@7.2.0)':
     dependencies:
       http-cookie-agent: 7.0.4(tough-cookie@6.1.0)(undici@7.30.2)
-      https-proxy-agent: 7.0.6
+      https-proxy-agent: 7.0.6(supports-color@7.2.0)
       m3u8stream: 0.8.7
       miniget: 4.2.8
       sax: 1.6.1
@@ -2213,21 +2379,21 @@ snapshots:
       wrap-ansi: 8.1.0
       wrap-ansi-cjs: wrap-ansi@7.0.0
 
-  '@jimp/core@1.6.1':
+  '@jimp/core@1.6.1(supports-color@7.2.0)':
     dependencies:
       '@jimp/file-ops': 1.6.1
       '@jimp/types': 1.6.1
       '@jimp/utils': 1.6.1
       await-to-js: 3.0.0
       exif-parser: 0.1.12
-      file-type: 21.3.4
+      file-type: 21.3.4(supports-color@7.2.0)
       mime: 3.0.0
     transitivePeerDependencies:
       - supports-color
 
-  '@jimp/diff@1.6.1':
+  '@jimp/diff@1.6.1(supports-color@7.2.0)':
     dependencies:
-      '@jimp/plugin-resize': 1.6.1
+      '@jimp/plugin-resize': 1.6.1(supports-color@7.2.0)
       '@jimp/types': 1.6.1
       '@jimp/utils': 1.6.1
       pixelmatch: 5.3.0
@@ -2236,43 +2402,43 @@ snapshots:
 
   '@jimp/file-ops@1.6.1': {}
 
-  '@jimp/js-bmp@1.6.1':
+  '@jimp/js-bmp@1.6.1(supports-color@7.2.0)':
     dependencies:
-      '@jimp/core': 1.6.1
+      '@jimp/core': 1.6.1(supports-color@7.2.0)
       '@jimp/types': 1.6.1
       '@jimp/utils': 1.6.1
       bmp-ts: 1.0.9
     transitivePeerDependencies:
       - supports-color
 
-  '@jimp/js-gif@1.6.1':
+  '@jimp/js-gif@1.6.1(supports-color@7.2.0)':
     dependencies:
-      '@jimp/core': 1.6.1
+      '@jimp/core': 1.6.1(supports-color@7.2.0)
       '@jimp/types': 1.6.1
       gifwrap: 0.10.1
       omggif: 1.0.10
     transitivePeerDependencies:
       - supports-color
 
-  '@jimp/js-jpeg@1.6.1':
+  '@jimp/js-jpeg@1.6.1(supports-color@7.2.0)':
     dependencies:
-      '@jimp/core': 1.6.1
+      '@jimp/core': 1.6.1(supports-color@7.2.0)
       '@jimp/types': 1.6.1
       jpeg-js: 0.4.4
     transitivePeerDependencies:
       - supports-color
 
-  '@jimp/js-png@1.6.1':
+  '@jimp/js-png@1.6.1(supports-color@7.2.0)':
     dependencies:
-      '@jimp/core': 1.6.1
+      '@jimp/core': 1.6.1(supports-color@7.2.0)
       '@jimp/types': 1.6.1
       pngjs: 7.0.0
     transitivePeerDependencies:
       - supports-color
 
-  '@jimp/js-tiff@1.6.1':
+  '@jimp/js-tiff@1.6.1(supports-color@7.2.0)':
     dependencies:
-      '@jimp/core': 1.6.1
+      '@jimp/core': 1.6.1(supports-color@7.2.0)
       '@jimp/types': 1.6.1
       utif2: 4.1.0
     transitivePeerDependencies:
@@ -2284,9 +2450,9 @@ snapshots:
       '@jimp/utils': 1.6.1
       zod: 3.25.76
 
-  '@jimp/plugin-blur@1.6.1':
+  '@jimp/plugin-blur@1.6.1(supports-color@7.2.0)':
     dependencies:
-      '@jimp/core': 1.6.1
+      '@jimp/core': 1.6.1(supports-color@7.2.0)
       '@jimp/utils': 1.6.1
     transitivePeerDependencies:
       - supports-color
@@ -2296,9 +2462,9 @@ snapshots:
       '@jimp/types': 1.6.1
       zod: 3.25.76
 
-  '@jimp/plugin-color@1.6.1':
+  '@jimp/plugin-color@1.6.1(supports-color@7.2.0)':
     dependencies:
-      '@jimp/core': 1.6.1
+      '@jimp/core': 1.6.1(supports-color@7.2.0)
       '@jimp/types': 1.6.1
       '@jimp/utils': 1.6.1
       tinycolor2: 1.6.0
@@ -2306,30 +2472,30 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@jimp/plugin-contain@1.6.1':
+  '@jimp/plugin-contain@1.6.1(supports-color@7.2.0)':
     dependencies:
-      '@jimp/core': 1.6.1
+      '@jimp/core': 1.6.1(supports-color@7.2.0)
       '@jimp/plugin-blit': 1.6.1
-      '@jimp/plugin-resize': 1.6.1
+      '@jimp/plugin-resize': 1.6.1(supports-color@7.2.0)
       '@jimp/types': 1.6.1
       '@jimp/utils': 1.6.1
       zod: 3.25.76
     transitivePeerDependencies:
       - supports-color
 
-  '@jimp/plugin-cover@1.6.1':
+  '@jimp/plugin-cover@1.6.1(supports-color@7.2.0)':
     dependencies:
-      '@jimp/core': 1.6.1
-      '@jimp/plugin-crop': 1.6.1
-      '@jimp/plugin-resize': 1.6.1
+      '@jimp/core': 1.6.1(supports-color@7.2.0)
+      '@jimp/plugin-crop': 1.6.1(supports-color@7.2.0)
+      '@jimp/plugin-resize': 1.6.1(supports-color@7.2.0)
       '@jimp/types': 1.6.1
       zod: 3.25.76
     transitivePeerDependencies:
       - supports-color
 
-  '@jimp/plugin-crop@1.6.1':
+  '@jimp/plugin-crop@1.6.1(supports-color@7.2.0)':
     dependencies:
-      '@jimp/core': 1.6.1
+      '@jimp/core': 1.6.1(supports-color@7.2.0)
       '@jimp/types': 1.6.1
       '@jimp/utils': 1.6.1
       zod: 3.25.76
@@ -2357,15 +2523,15 @@ snapshots:
       '@jimp/types': 1.6.1
       zod: 3.25.76
 
-  '@jimp/plugin-hash@1.6.1':
+  '@jimp/plugin-hash@1.6.1(supports-color@7.2.0)':
     dependencies:
-      '@jimp/core': 1.6.1
-      '@jimp/js-bmp': 1.6.1
-      '@jimp/js-jpeg': 1.6.1
-      '@jimp/js-png': 1.6.1
-      '@jimp/js-tiff': 1.6.1
-      '@jimp/plugin-color': 1.6.1
-      '@jimp/plugin-resize': 1.6.1
+      '@jimp/core': 1.6.1(supports-color@7.2.0)
+      '@jimp/js-bmp': 1.6.1(supports-color@7.2.0)
+      '@jimp/js-jpeg': 1.6.1(supports-color@7.2.0)
+      '@jimp/js-png': 1.6.1(supports-color@7.2.0)
+      '@jimp/js-tiff': 1.6.1(supports-color@7.2.0)
+      '@jimp/plugin-color': 1.6.1(supports-color@7.2.0)
+      '@jimp/plugin-resize': 1.6.1(supports-color@7.2.0)
       '@jimp/types': 1.6.1
       '@jimp/utils': 1.6.1
       any-base: 1.1.0
@@ -2377,11 +2543,11 @@ snapshots:
       '@jimp/types': 1.6.1
       zod: 3.25.76
 
-  '@jimp/plugin-print@1.6.1':
+  '@jimp/plugin-print@1.6.1(supports-color@7.2.0)':
     dependencies:
-      '@jimp/core': 1.6.1
-      '@jimp/js-jpeg': 1.6.1
-      '@jimp/js-png': 1.6.1
+      '@jimp/core': 1.6.1(supports-color@7.2.0)
+      '@jimp/js-jpeg': 1.6.1(supports-color@7.2.0)
+      '@jimp/js-png': 1.6.1(supports-color@7.2.0)
       '@jimp/plugin-blit': 1.6.1
       '@jimp/types': 1.6.1
       parse-bmfont-ascii: 1.0.6
@@ -2397,30 +2563,30 @@ snapshots:
       image-q: 4.0.0
       zod: 3.25.76
 
-  '@jimp/plugin-resize@1.6.1':
+  '@jimp/plugin-resize@1.6.1(supports-color@7.2.0)':
     dependencies:
-      '@jimp/core': 1.6.1
+      '@jimp/core': 1.6.1(supports-color@7.2.0)
       '@jimp/types': 1.6.1
       zod: 3.25.76
     transitivePeerDependencies:
       - supports-color
 
-  '@jimp/plugin-rotate@1.6.1':
+  '@jimp/plugin-rotate@1.6.1(supports-color@7.2.0)':
     dependencies:
-      '@jimp/core': 1.6.1
-      '@jimp/plugin-crop': 1.6.1
-      '@jimp/plugin-resize': 1.6.1
+      '@jimp/core': 1.6.1(supports-color@7.2.0)
+      '@jimp/plugin-crop': 1.6.1(supports-color@7.2.0)
+      '@jimp/plugin-resize': 1.6.1(supports-color@7.2.0)
       '@jimp/types': 1.6.1
       '@jimp/utils': 1.6.1
       zod: 3.25.76
     transitivePeerDependencies:
       - supports-color
 
-  '@jimp/plugin-threshold@1.6.1':
+  '@jimp/plugin-threshold@1.6.1(supports-color@7.2.0)':
     dependencies:
-      '@jimp/core': 1.6.1
-      '@jimp/plugin-color': 1.6.1
-      '@jimp/plugin-hash': 1.6.1
+      '@jimp/core': 1.6.1(supports-color@7.2.0)
+      '@jimp/plugin-color': 1.6.1(supports-color@7.2.0)
+      '@jimp/plugin-hash': 1.6.1(supports-color@7.2.0)
       '@jimp/types': 1.6.1
       '@jimp/utils': 1.6.1
       zod: 3.25.76
@@ -2517,16 +2683,16 @@ snapshots:
       - encoding
       - seedrandom
 
-  '@tokenizer/inflate@0.4.1':
+  '@tokenizer/inflate@0.4.1(supports-color@7.2.0)':
     dependencies:
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@7.2.0)
       token-types: 6.2.0
     transitivePeerDependencies:
       - supports-color
 
-  '@tokenizer/inflate@0.6.1':
+  '@tokenizer/inflate@0.6.1(supports-color@7.2.0)':
     dependencies:
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@7.2.0)
       strtok3: 10.8.0
       token-types: 6.2.0
     transitivePeerDependencies:
@@ -2623,9 +2789,9 @@ snapshots:
       mime-types: 2.1.35
       negotiator: 0.6.3
 
-  agent-base@6.0.2:
+  agent-base@6.0.2(supports-color@7.2.0):
     dependencies:
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@7.2.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -2730,11 +2896,11 @@ snapshots:
 
   await-to-js@3.0.0: {}
 
-  axios@1.21.1:
+  axios@1.21.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0):
     dependencies:
-      follow-redirects: 1.16.3
+      follow-redirects: 1.16.3(debug@4.4.3(supports-color@7.2.0))
       form-data: 4.0.6
-      https-proxy-agent: 5.0.1
+      https-proxy-agent: 5.0.1(supports-color@7.2.0)
       proxy-from-env: 2.1.0
     transitivePeerDependencies:
       - debug
@@ -2792,11 +2958,11 @@ snapshots:
 
   bmp-ts@1.0.9: {}
 
-  body-parser@1.20.9:
+  body-parser@1.20.9(supports-color@7.2.0):
     dependencies:
       bytes: 3.1.2
       content-type: 1.0.5
-      debug: 2.6.9
+      debug: 2.6.9(supports-color@7.2.0)
       depd: 2.0.0
       destroy: 1.2.0
       http-errors: 2.0.1
@@ -2977,13 +3143,17 @@ snapshots:
 
   dateformat@4.6.3: {}
 
-  debug@2.6.9:
+  debug@2.6.9(supports-color@7.2.0):
     dependencies:
       ms: 2.0.0
+    optionalDependencies:
+      supports-color: 7.2.0
 
-  debug@4.4.3:
+  debug@4.4.3(supports-color@7.2.0):
     dependencies:
       ms: 2.1.3
+    optionalDependencies:
+      supports-color: 7.2.0
 
   delayed-stream@1.0.0: {}
 
@@ -3110,21 +3280,21 @@ snapshots:
 
   exif-parser@0.1.12: {}
 
-  express@4.22.3:
+  express@4.22.3(supports-color@7.2.0):
     dependencies:
       accepts: 1.3.8
       array-flatten: 1.1.1
-      body-parser: 1.20.9
+      body-parser: 1.20.9(supports-color@7.2.0)
       content-disposition: 0.5.4
       content-type: 1.0.5
       cookie: 0.7.2
       cookie-signature: 1.0.7
-      debug: 2.6.9
+      debug: 2.6.9(supports-color@7.2.0)
       depd: 2.0.0
       encodeurl: 2.0.3
       escape-html: 1.0.3
       etag: 1.8.1
-      finalhandler: 1.3.2
+      finalhandler: 1.3.2(supports-color@7.2.0)
       fresh: 0.5.2
       http-errors: 2.0.1
       merge-descriptors: 1.0.3
@@ -3136,8 +3306,8 @@ snapshots:
       qs: 6.16.2
       range-parser: 1.2.1
       safe-buffer: 5.2.1
-      send: 0.19.2
-      serve-static: 1.16.3
+      send: 0.19.2(supports-color@7.2.0)
+      serve-static: 1.16.3(supports-color@7.2.0)
       setprototypeof: 1.2.0
       statuses: 2.0.2
       type-is: 1.6.18
@@ -3164,27 +3334,27 @@ snapshots:
       node-domexception: 1.0.0
       web-streams-polyfill: 3.3.3
 
-  file-type@21.3.4:
+  file-type@21.3.4(supports-color@7.2.0):
     dependencies:
-      '@tokenizer/inflate': 0.4.1
+      '@tokenizer/inflate': 0.4.1(supports-color@7.2.0)
       strtok3: 10.8.0
       token-types: 6.2.0
       uint8array-extras: 1.6.0
     transitivePeerDependencies:
       - supports-color
 
-  file-type@22.3.0:
+  file-type@22.3.0(supports-color@7.2.0):
     dependencies:
-      '@tokenizer/inflate': 0.6.1
+      '@tokenizer/inflate': 0.6.1(supports-color@7.2.0)
       strtok3: 10.8.0
       token-types: 6.2.0
       uint8array-extras: 1.6.0
     transitivePeerDependencies:
       - supports-color
 
-  finalhandler@1.3.2:
+  finalhandler@1.3.2(supports-color@7.2.0):
     dependencies:
-      debug: 2.6.9
+      debug: 2.6.9(supports-color@7.2.0)
       encodeurl: 2.0.3
       escape-html: 1.0.3
       on-finished: 2.4.2
@@ -3201,7 +3371,9 @@ snapshots:
 
   fn.name@1.1.0: {}
 
-  follow-redirects@1.16.3: {}
+  follow-redirects@1.16.3(debug@4.4.3(supports-color@7.2.0)):
+    optionalDependencies:
+      debug: 4.4.3(supports-color@7.2.0)
 
   foreground-child@3.3.1:
     dependencies:
@@ -3316,17 +3488,17 @@ snapshots:
       statuses: 2.0.2
       toidentifier: 1.0.1
 
-  https-proxy-agent@5.0.1:
+  https-proxy-agent@5.0.1(supports-color@7.2.0):
     dependencies:
-      agent-base: 6.0.2
-      debug: 4.4.3
+      agent-base: 6.0.2(supports-color@7.2.0)
+      debug: 4.4.3(supports-color@7.2.0)
     transitivePeerDependencies:
       - supports-color
 
-  https-proxy-agent@7.0.6:
+  https-proxy-agent@7.0.6(supports-color@7.2.0):
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@7.2.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -3372,33 +3544,33 @@ snapshots:
     optionalDependencies:
       '@pkgjs/parseargs': 0.11.0
 
-  jimp@1.6.1:
+  jimp@1.6.1(supports-color@7.2.0):
     dependencies:
-      '@jimp/core': 1.6.1
-      '@jimp/diff': 1.6.1
-      '@jimp/js-bmp': 1.6.1
-      '@jimp/js-gif': 1.6.1
-      '@jimp/js-jpeg': 1.6.1
-      '@jimp/js-png': 1.6.1
-      '@jimp/js-tiff': 1.6.1
+      '@jimp/core': 1.6.1(supports-color@7.2.0)
+      '@jimp/diff': 1.6.1(supports-color@7.2.0)
+      '@jimp/js-bmp': 1.6.1(supports-color@7.2.0)
+      '@jimp/js-gif': 1.6.1(supports-color@7.2.0)
+      '@jimp/js-jpeg': 1.6.1(supports-color@7.2.0)
+      '@jimp/js-png': 1.6.1(supports-color@7.2.0)
+      '@jimp/js-tiff': 1.6.1(supports-color@7.2.0)
       '@jimp/plugin-blit': 1.6.1
-      '@jimp/plugin-blur': 1.6.1
+      '@jimp/plugin-blur': 1.6.1(supports-color@7.2.0)
       '@jimp/plugin-circle': 1.6.1
-      '@jimp/plugin-color': 1.6.1
-      '@jimp/plugin-contain': 1.6.1
-      '@jimp/plugin-cover': 1.6.1
-      '@jimp/plugin-crop': 1.6.1
+      '@jimp/plugin-color': 1.6.1(supports-color@7.2.0)
+      '@jimp/plugin-contain': 1.6.1(supports-color@7.2.0)
+      '@jimp/plugin-cover': 1.6.1(supports-color@7.2.0)
+      '@jimp/plugin-crop': 1.6.1(supports-color@7.2.0)
       '@jimp/plugin-displace': 1.6.1
       '@jimp/plugin-dither': 1.6.1
       '@jimp/plugin-fisheye': 1.6.1
       '@jimp/plugin-flip': 1.6.1
-      '@jimp/plugin-hash': 1.6.1
+      '@jimp/plugin-hash': 1.6.1(supports-color@7.2.0)
       '@jimp/plugin-mask': 1.6.1
-      '@jimp/plugin-print': 1.6.1
+      '@jimp/plugin-print': 1.6.1(supports-color@7.2.0)
       '@jimp/plugin-quantize': 1.6.1
-      '@jimp/plugin-resize': 1.6.1
-      '@jimp/plugin-rotate': 1.6.1
-      '@jimp/plugin-threshold': 1.6.1
+      '@jimp/plugin-resize': 1.6.1(supports-color@7.2.0)
+      '@jimp/plugin-rotate': 1.6.1(supports-color@7.2.0)
+      '@jimp/plugin-threshold': 1.6.1(supports-color@7.2.0)
       '@jimp/types': 1.6.1
       '@jimp/utils': 1.6.1
     transitivePeerDependencies:
@@ -3490,25 +3662,25 @@ snapshots:
 
   minipass@7.1.3: {}
 
-  mqtt-packet@9.0.2:
+  mqtt-packet@9.0.2(supports-color@7.2.0):
     dependencies:
       bl: 6.1.6
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@7.2.0)
       process-nextick-args: 2.0.1
     transitivePeerDependencies:
       - supports-color
 
-  mqtt@5.16.1:
+  mqtt@5.16.1(supports-color@7.2.0):
     dependencies:
       '@types/readable-stream': 4.0.25
       '@types/ws': 8.18.2
       commist: 3.2.0
       concat-stream: 2.0.0
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@7.2.0)
       help-me: 5.0.0
       lru-cache: 10.4.3
       minimist: 1.2.8
-      mqtt-packet: 9.0.2
+      mqtt-packet: 9.0.2(supports-color@7.2.0)
       readable-stream: 4.8.0
       rfdc: 1.4.1
       socks: 2.8.10
@@ -3610,10 +3782,10 @@ snapshots:
 
   pako@1.0.11: {}
 
-  panindigan-automate@0.2.9:
+  panindigan-automate@0.3.0(supports-color@7.2.0):
     dependencies:
       lru-cache: 11.5.3
-      mqtt: 5.16.1
+      mqtt: 5.16.1(supports-color@7.2.0)
       pino: 10.4.0
       pino-pretty: 13.2.0
       socks: 2.8.10
@@ -3843,9 +4015,9 @@ snapshots:
 
   seedrandom@3.0.5: {}
 
-  send@0.19.2:
+  send@0.19.2(supports-color@7.2.0):
     dependencies:
-      debug: 2.6.9
+      debug: 2.6.9(supports-color@7.2.0)
       depd: 2.0.0
       destroy: 1.2.0
       encodeurl: 2.0.3
@@ -3861,12 +4033,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  serve-static@1.16.3:
+  serve-static@1.16.3(supports-color@7.2.0):
     dependencies:
       encodeurl: 2.0.3
       escape-html: 1.0.3
       parseurl: 1.3.3
-      send: 0.19.2
+      send: 0.19.2(supports-color@7.2.0)
     transitivePeerDependencies:
       - supports-color
 
