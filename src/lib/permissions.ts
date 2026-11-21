@@ -1,4 +1,16 @@
 import config from '../../config.json' with { type: 'json' };
+import type { MessengerClient } from 'panindigan-automate';
+import { safeGetThreadInfo } from './apiHelpers.js';
+
+/** Reads the live group admin list from the modern client's ThreadInfo. */
+async function threadAdminIds(client: MessengerClient, threadId: string): Promise<string[]> {
+  try {
+    const info = await safeGetThreadInfo(client, threadId);
+    return (info?.adminIDs ?? []).map((a: any) => String(a?.id ?? a ?? '').trim()).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
 
 export function isOwner(userId: string): boolean {
   const envOwnerId = process.env.OWNER_ID;
@@ -23,33 +35,32 @@ export async function canExecuteOwnerCommand(userId: string): Promise<boolean> {
 
 export async function canExecuteAdminCommand(
   userId: string,
-  _client: import('panindigan-automate').MessengerClient,
-  _threadId: string
+  client: import('panindigan-automate').MessengerClient,
+  threadId: string
 ): Promise<{ allowed: boolean; reason?: string }> {
-  // Panindigan Automate does not expose thread admin lists; the configured
-  // admin list (and owner ids) is the decision source.
-  if (isOwner(userId)) {
+  if (isOwner(userId) || isInAdminList(userId)) {
     return { allowed: true };
   }
-
-  const inAdminList = isInAdminList(userId);
-  if (!inAdminList) {
-    return { allowed: false, reason: 'not_in_admin_list' };
+  // Modern client now exposes the live group admin list. A real group admin
+  // can run admin commands even when not in the configured bot admin list.
+  if (threadId && await isThreadAdmin(userId, await threadAdminIds(client, threadId))) {
+    return { allowed: true };
   }
-  return { allowed: true };
+  return { allowed: false, reason: 'not_in_admin_list' };
 }
 
 export async function canAccessLockedGroup(
   userId: string,
-  _client: import('panindigan-automate').MessengerClient,
-  _threadId: string
+  client: import('panindigan-automate').MessengerClient,
+  threadId: string
 ): Promise<boolean> {
-  // Panindigan Automate does not expose thread admin lists; a configured
-  // admin or owner passes, everyone else is denied.
-  if (isOwner(userId)) {
+  if (isOwner(userId) || isInAdminList(userId)) {
     return true;
   }
-  return isInAdminList(userId);
+  if (threadId && await isThreadAdmin(userId, await threadAdminIds(client, threadId))) {
+    return true;
+  }
+  return false;
 }
 
 export function getOwnerIds(): string[] {

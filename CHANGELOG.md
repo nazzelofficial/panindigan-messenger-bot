@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.13.2] - 2026-11-21
+
+### Fixed
+
+- `adminlist` / `getadmins` now show real group admins. The modern client exposes `ThreadInfo.adminIDs`; previously the value was always missing so these commands always reported "admin list unavailable".
+- `promote` / `demote` / locked-group access now also recognize real group admins from the thread, not only IDs in `config.json`.
+
 ## [2.13.1] - 2026-11-20
 
 ### Fixed
