@@ -31,6 +31,30 @@ describe("database ownership contracts", () => {
     expect(turso).not.toContain("TIMESTAMPTZ");
   });
 
+  it("keeps the first CREATE TABLE in a Turso migration that starts with a comment", () => {
+    const contents = readFileSync(
+      path.resolve(process.cwd(), "database/turso/migrations/001_operational_history.sql"),
+      "utf8",
+    );
+    const statements = contents
+      .split(";")
+      .map((statement) =>
+        statement
+          .split("\n")
+          .filter((line) => !line.trimStart().startsWith("--"))
+          .join("\n")
+          .trim(),
+      )
+      .filter((statement) => statement.length > 0);
+    expect(statements[0]).toContain("CREATE TABLE IF NOT EXISTS command_history");
+    expect(
+      statements.some((statement) =>
+        statement.includes("CREATE TABLE IF NOT EXISTS command_analytics"),
+      ),
+    ).toBe(true);
+    expect(statements.length).toBeGreaterThanOrEqual(8);
+  });
+
   it("provides the consolidated panindigan.sql schema entry point", () => {
     const schema = readFileSync(
       path.resolve(process.cwd(), "database/postgresql/schema/panindigan.sql"),

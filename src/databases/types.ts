@@ -15,9 +15,23 @@ export interface DatabaseComponent {
 }
 
 export class DatabaseUnavailableError extends Error {
-  public constructor(database: string, operation: string, cause?: unknown) {
-    super(`${database} is unavailable while performing ${operation}.`);
+  public constructor(database: string, operation: string, cause?: unknown, detail?: string) {
+    super(
+      detail
+        ? `${database} is unavailable while performing ${operation}: ${detail}`
+        : `${database} is unavailable while performing ${operation}.`,
+      { cause },
+    );
     this.name = "DatabaseUnavailableError";
-    this.cause = cause;
   }
+}
+
+/** Removes anything that could identify a URL, token or credential from an error. */
+export function sanitizeErrorDetail(error: unknown): string {
+  if (!(error instanceof Error)) return "unknown error";
+  return error.message
+    .replace(/[a-z][a-z0-9+.-]*:\/\/[^\s"'()]+/gi, "[REDACTED_URL]")
+    .replace(/Bearer\s+\S+/gi, "Bearer [REDACTED]")
+    .replace(/token[=:]\s*\S+/gi, "token=[REDACTED]")
+    .slice(0, 300);
 }

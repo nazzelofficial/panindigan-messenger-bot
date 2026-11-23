@@ -44,8 +44,17 @@ export class TursoMigrator {
       }
       const statements = contents
         .split(";")
-        .map((statement) => statement.trim())
-        .filter((statement) => statement.length > 0 && !statement.startsWith("--"))
+        // Strip only comment lines. A chunk may legitimately start with a
+        // comment and then contain a CREATE TABLE — dropping the whole chunk
+        // would leave the indexes pointing at a table that was never created.
+        .map((statement) =>
+          statement
+            .split("\n")
+            .filter((line) => !line.trimStart().startsWith("--"))
+            .join("\n")
+            .trim(),
+        )
+        .filter((statement) => statement.length > 0)
         .map((sql) => ({ sql }));
       await this.client.batch([
         ...statements,

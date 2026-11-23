@@ -1,6 +1,6 @@
 import { createClient, type Client, type InValue } from "@libsql/client";
 import type { AppConfig } from "../../config/index.js";
-import { DatabaseUnavailableError, type DatabaseHealth } from "../types.js";
+import { DatabaseUnavailableError, sanitizeErrorDetail, type DatabaseHealth } from "../types.js";
 
 /** libSQL accepts only scalar values; structured values are stored as JSON text. */
 function toSqlValues(args: readonly unknown[]): InValue[] {
@@ -64,7 +64,12 @@ export class TursoClient {
         await new Promise((resolve) => setTimeout(resolve, 50 * 2 ** attempt));
       }
     }
-    throw new DatabaseUnavailableError("Turso", operation, lastError);
+    throw new DatabaseUnavailableError(
+      "Turso",
+      operation,
+      lastError,
+      sanitizeErrorDetail(lastError),
+    );
   }
 
   public async connect(): Promise<void> {
