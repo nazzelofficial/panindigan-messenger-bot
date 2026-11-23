@@ -8,12 +8,14 @@ import { MongoDatabase } from "./mongodb/client.js";
 import { MongoMigrator } from "./mongodb/migrations.js";
 import { RedisDatabase } from "./redis/client.js";
 import type { DatabaseHealth } from "./types.js";
+import { sanitizeErrorDetail } from "./types.js";
 import {
   UserRepository,
   GroupRepository,
   AuditRepository,
 } from "./postgresql/repositories/core.js";
 import { EconomyRepository } from "./postgresql/repositories/economy.js";
+import { BankRepository } from "./postgresql/repositories/bank.js";
 import { LevelingRepository } from "./postgresql/repositories/leveling.js";
 import { ModerationRepository } from "./postgresql/repositories/moderation.js";
 import { AiRepository } from "./postgresql/repositories/ai.js";
@@ -21,7 +23,6 @@ import { MaintenanceRepository } from "./postgresql/repositories/maintenance.js"
 import { AnnouncementRepository } from "./postgresql/repositories/announcements.js";
 import { AutomationRepository } from "./postgresql/repositories/automation.js";
 import { SchedulerRepository } from "./postgresql/repositories/scheduler.js";
-import { BankRepository } from "./postgresql/repositories/bank.js";
 import { OperationalRepository, CheckpointRepository } from "./turso/repositories.js";
 import { ArchiveRepository } from "./mongodb/repositories.js";
 import { CooldownStore } from "./redis/cooldowns.js";
@@ -67,61 +68,85 @@ export class DatabaseManager {
     this.bundle = { health: () => this.health() };
   }
 
+  /** Every dependency failure is labelled so startup logs identify the store. */
+  private async stage<T>(name: string, work: () => Promise<T>): Promise<T> {
+    try {
+      return await work();
+    } catch (error) {
+      this.logger.error(
+        { database: name, error: sanitizeErrorDetail(error) },
+        "Database initialization failed",
+      );
+      throw new Error(`${name} initialization failed: ${sanitizeErrorDetail(error)}`, {
+        cause: error,
+      });
+    }
+  }
+
   public async initialize(): Promise<void> {
     const { databases } = this.config;
+
     if (databases.postgresql.enabled) {
-      this.bundle.postgres = new PostgresClient(this.secrets.postgresUrl!, this.config);
-      await this.bundle.postgres.connect();
-      await new PostgresMigrator(this.bundle.postgres, this.logger).migrate();
-      this.bundle.users = new UserRepository(this.bundle.postgres);
-      this.bundle.groups = new GroupRepository(this.bundle.postgres);
-      this.bundle.audit = new AuditRepository(this.bundle.postgres);
-      this.bundle.economy = new EconomyRepository(this.bundle.postgres);
-      this.bundle.bank = new BankRepository(this.bundle.postgres);
-      this.bundle.leveling = new LevelingRepository(this.bundle.postgres);
-      this.bundle.moderation = new ModerationRepository(this.bundle.postgres);
-      this.bundle.ai = new AiRepository(this.bundle.postgres);
-      this.bundle.maintenance = new MaintenanceRepository(this.bundle.postgres);
-      this.bundle.announcements = new AnnouncementRepository(this.bundle.postgres);
-      this.bundle.automation = new AutomationRepository(this.bundle.postgres);
-      this.bundle.scheduler = new SchedulerRepository(this.bundle.postgres);
+      await this.stage("PostgreSQL", async () => {
+        this.bundle.postgres = new PostgresClient(this.secrets.postgresUrl!, this.config);
+        await this.bundle.postgres.connect();
+        await new PostgresMigrator(this.bundle.postgres, this.logger).migrate();
+        this.bundle.users = new UserRepository(this.bundle.postgres);
+        this.bundle.groups = new GroupRepository(this.bundle.postgres);
+        this.bundle.audit = new AuditRepository(this.bundle.postgres);
+        this.bundle.economy = new EconomyRepository(this.bundle.postgres);
+        this.bundle.bank = new BankRepository(this.bundle.postgres);
+        this.bundle.leveling = new LevelingRepository(this.bundle.postgres);
+        this.bundle.moderation = new ModerationRepository(this.bundle.postgres);
+        this.bundle.ai = new AiRepository(this.bundle.postgres);
+        this.bundle.maintenance = new MaintenanceRepository(this.bundle.postgres);
+        this.bundle.announcements = new AnnouncementRepository(this.bundle.postgres);
+        this.bundle.automation = new AutomationRepository(this.bundle.postgres);
+        this.bundle.scheduler = new SchedulerRepository(this.bundle.postgres);
+      });
       this.logger.info("PostgreSQL connected and migrations verified");
     }
 
     if (databases.turso.enabled) {
       // Failure is intentionally fatal: a missing or inaccessible production
       // database must never be replaced by an empty local database.
-      this.bundle.turso = new TursoClient(
-        this.secrets.tursoUrl!,
-        this.secrets.tursoToken!,
-        this.config,
-      );
-      await this.bundle.turso.connect();
-      await new TursoMigrator(this.bundle.turso, this.logger).migrate();
-      if (databases.turso.verifyIntegrityOnStartup) {
-        const result = await this.bundle.turso.integrityCheck();
-        if (result !== "ok") throw new Error(`Turso integrity check failed: ${result}`);
-      }
-      this.bundle.operational = new OperationalRepository(this.bundle.turso);
-      this.bundle.checkpoints = new CheckpointRepository(this.bundle.turso);
+      await this.stage("Turso", async () => {
+        this.bundle.turso = new TursoClient(
+          this.secrets.tursoUrl!,
+          this.secrets.tursoToken!,
+          this.config,
+        );
+        await this.bundle.turso.connect();
+        await new TursoMigrator(this.bundle.turso, this.logger).migrate();
+        if (databases.turso.verifyIntegrityOnStartup) {
+          const result = await this.bundle.turso.integrityCheck();
+          if (result !== "ok") throw new Error(`Integrity check returned ${result}`);
+        }
+        this.bundle.operational = new OperationalRepository(this.bundle.turso);
+        this.bundle.checkpoints = new CheckpointRepository(this.bundle.turso);
+      });
       this.logger.info("Turso connected, migrations verified and integrity confirmed");
     }
 
     if (databases.mongodb.enabled) {
-      this.bundle.mongodb = new MongoDatabase(this.secrets.mongodbUrl!, this.config);
-      await this.bundle.mongodb.connect();
-      await new MongoMigrator(this.bundle.mongodb, this.logger).migrate();
-      this.bundle.archive = new ArchiveRepository(this.bundle.mongodb);
+      await this.stage("MongoDB", async () => {
+        this.bundle.mongodb = new MongoDatabase(this.secrets.mongodbUrl!, this.config);
+        await this.bundle.mongodb.connect();
+        await new MongoMigrator(this.bundle.mongodb, this.logger).migrate();
+        this.bundle.archive = new ArchiveRepository(this.bundle.mongodb);
+      });
       this.logger.info("MongoDB connected and indexes verified");
     }
 
     if (databases.redis.enabled) {
-      this.bundle.redis = new RedisDatabase(this.secrets.redisUrl!, this.config);
-      await this.bundle.redis.connect();
-      this.bundle.cooldowns = new CooldownStore(this.bundle.redis);
-      this.bundle.locks = new LockManager(this.bundle.redis);
-      this.bundle.cache = new RedisCache(this.bundle.redis, this.config.cache.maximumEntries);
-      this.bundle.rateLimiter = new RateLimiterStore(this.bundle.redis);
+      await this.stage("Redis", async () => {
+        this.bundle.redis = new RedisDatabase(this.secrets.redisUrl!, this.config);
+        await this.bundle.redis.connect();
+        this.bundle.cooldowns = new CooldownStore(this.bundle.redis);
+        this.bundle.locks = new LockManager(this.bundle.redis);
+        this.bundle.cache = new RedisCache(this.bundle.redis, this.config.cache.maximumEntries);
+        this.bundle.rateLimiter = new RateLimiterStore(this.bundle.redis);
+      });
       this.logger.info("Redis connected");
     }
   }

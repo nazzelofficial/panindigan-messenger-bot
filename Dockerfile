@@ -5,7 +5,7 @@ FROM node:26-alpine AS builder
 
 # libc6-compat is a safety net for native modules with glibc assumptions.
 # If you switch the base image to node:26-bookworm-slim, drop this package.
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat ca-certificates
 WORKDIR /app
 
 # Node 26 official images no longer bundle corepack, so install pnpm with npm.
@@ -25,7 +25,7 @@ RUN pnpm prune --prod
 # ---- Runtime stage -------------------------------------------------------
 FROM node:26-alpine AS runtime
 
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat ca-certificates
 ENV NODE_ENV=production
 WORKDIR /app
 
