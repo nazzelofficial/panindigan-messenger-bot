@@ -11,6 +11,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Durable Messenger sessions: the refreshed session cookie jar is stored in Turso with a local `data/session` file mirror, so restarts, redeploys, and power loss do not log the account out. A corrected `FB_APPSTATE` is still picked up automatically when Facebook rejects a session.
 - Continuous uptime: `!uptime` and `GET /uptime` now report time online from a durable first-seen timestamp in Turso, alongside the per-process uptime.
 
+### Fixed
+
+- The uptime server now serves `GET /` with a small status overview instead of returning `{"message":"Route GET:/ not found","error":"Not Found","statusCode":404}` to browsers and health probes. Unknown paths still return 404, now with a consistent body listing the available endpoints.
+
 ### Changed
 
 - README grammar and accuracy pass: corrected stale version numbers and the uptime-endpoint status, reworded awkward sections, and documented durable sessions and uptime. No content was removed.

@@ -23,6 +23,48 @@ export function resolveUptimePort(config: AppConfig): number {
     : config.uptimeEndpoint.port;
 }
 
+/**
+ * Registers the uptime server's HTTP routes on a Fastify instance. Exported
+ * so the root/health/uptime behaviour can be verified in isolation.
+ */
+export function registerUptimeRoutes(
+  app: FastifyInstance,
+  dependencies: {
+    messenger: MessengerGateway;
+    databases: DatabaseManager;
+  },
+): void {
+  // The root path is what browsers, uptime probes, and platform health
+  // checks hit first. Without it every visit returned a 404 JSON body like
+  // {"message":"Route GET:/ not found","error":"Not Found","statusCode":404}.
+  // Serve a small status overview there instead.
+  app.get("/", async () => ({
+    ok: true,
+    service: "panindigan-messenger-bot",
+    endpoints: ["/health", "/uptime"],
+    timestamp: Date.now(),
+  }));
+  app.get("/health", async () => ({ ok: true, timestamp: Date.now() }));
+  app.get("/uptime", async () => ({
+    ok: true,
+    uptimeSeconds: Math.floor(process.uptime()),
+    messenger: dependencies.messenger.health().state,
+    databases: (await dependencies.databases.health()).map((entry) => ({
+      name: entry.name,
+      state: entry.state,
+    })),
+  }));
+  // Any other unknown path still returns a real 404, but with a consistent
+  // body instead of Fastify's bare "Route not found" message.
+  app.setNotFoundHandler(async (_request, reply) => {
+    await reply.code(404).send({
+      error: "Not Found",
+      message: "The requested endpoint does not exist. Available: /, /health, /uptime.",
+      statusCode: 404,
+    });
+  });
+}
+
 export async function startOptionalServers(
   config: AppConfig,
   secrets: ResolvedSecrets,
@@ -81,16 +123,7 @@ export async function startOptionalServers(
 
   if (config.uptimeEndpoint.enabled) {
     const app = Fastify({ logger: false });
-    app.get("/health", async () => ({ ok: true, timestamp: Date.now() }));
-    app.get("/uptime", async () => ({
-      ok: true,
-      uptimeSeconds: Math.floor(process.uptime()),
-      messenger: messenger.health().state,
-      databases: (await databases.health()).map((entry) => ({
-        name: entry.name,
-        state: entry.state,
-      })),
-    }));
+    registerUptimeRoutes(app, { messenger, databases });
     const uptimePort = resolveUptimePort(config);
     await app.listen({ host: config.uptimeEndpoint.host, port: uptimePort });
     instances.push(app);
