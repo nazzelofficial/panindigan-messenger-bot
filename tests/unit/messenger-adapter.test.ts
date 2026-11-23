@@ -20,12 +20,12 @@ describe("messenger adapter", () => {
     expect(options).not.toHaveProperty("appState");
   });
 
-  it("passes the configured Android user-agent through to the library", () => {
+  it("passes the configured desktop user-agent through to the library", () => {
     const options = buildClientOptions(config, secrets) as Record<string, unknown>;
     expect(options["userAgent"]).toBe(config.messenger.userAgent);
-    expect(String(options["userAgent"])).toContain("M2102J20SG");
-    expect(String(options["userAgent"])).toContain("Chrome/159.0.8154.18");
-    expect(String(options["userAgent"])).toContain("Mobile Safari/537.36");
+    expect(String(options["userAgent"])).toContain("Windows NT 10.0");
+    expect(String(options["userAgent"])).toContain("Chrome/159.0.8154.13");
+    expect(String(options["userAgent"])).not.toContain("Mobile");
   });
 
   it("accepts a valid AppState array by cookie name", () => {
@@ -45,5 +45,20 @@ describe("messenger adapter", () => {
 
   it("rejects malformed AppState JSON", () => {
     expect(() => parseAndValidateAppState("not-json")).toThrow(/valid JSON/);
+  });
+
+  it("warns about recommended cookies without logging their values", () => {
+    const warnings: Array<{ missingCookies?: string[] }> = [];
+    const logger = {
+      warn: (context: { missingCookies?: string[] }) => warnings.push(context),
+    } as never;
+    const state = JSON.stringify([
+      { key: "c_user", value: "super-secret-id" },
+      { key: "xs", value: "super-secret-xs" },
+      { key: "datr", value: "super-secret-datr" },
+    ]);
+    parseAndValidateAppState(state, logger);
+    expect(warnings[0]?.missingCookies).toEqual(["sb", "fr", "presence"]);
+    expect(JSON.stringify(warnings)).not.toContain("super-secret");
   });
 });

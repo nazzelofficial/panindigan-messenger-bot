@@ -98,7 +98,7 @@ export class MessengerGateway {
           `Environment variable ${this.config.messenger.authentication.appStateEnv} is not set`,
         );
       }
-      const credentials = parseAndValidateAppState(raw);
+      const credentials = parseAndValidateAppState(raw, this.logger);
       const client = new MessengerClient(buildClientOptions(this.config, this.secrets));
       this.wireClient(client);
       const result = await client.login(credentials);

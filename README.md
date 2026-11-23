@@ -47,6 +47,8 @@ The loader accepts either an array of cookie objects (with `key` or `name` field
 - `xs`
 - `datr`
 
+A full browser export also contains `sb`, `fr` and `presence`. They are not enforced, but the startup log warns when they are missing — export the complete jar from a desktop browser if login then fails. The library normalizes Facebook domains for you, so a leading dot on `domain` is not required. Keep `messenger.userAgent` as a **desktop** browser string: `login()` reads the desktop root page and scrapes `fb_dtsg`/`lsd` from its boot payload, which a mobile-shaped page may not contain.
+
 If any are missing, startup fails and tells you which ones to re-export. Cookie values are never read into logs or error messages.
 
 To export: sign in to Messenger in a desktop browser, open developer tools, go to the cookies storage view for the Messenger site, and copy the cookies into a JSON array of `{ "key": "...", "value": "..." }` objects. Store that array as a single line in `.env`:

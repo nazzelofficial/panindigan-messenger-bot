@@ -1,6 +1,7 @@
 import path from "node:path";
 import type { ClientOptions, Credentials } from "panindigan-automate";
 import type { AppConfig, ResolvedSecrets } from "../config/index.js";
+import type { AppLogger } from "../logging/logger.js";
 import { EnvironmentError } from "../utils/env.js";
 
 /**
@@ -37,7 +38,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * Validates the AppState before handing it to the library. Required cookies
  * are checked by name only — no values are ever read into logs or errors.
  */
-export function parseAndValidateAppState(raw: string): Credentials {
+export function parseAndValidateAppState(raw: string, logger?: AppLogger): Credentials {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
@@ -63,6 +64,17 @@ export function parseAndValidateAppState(raw: string): Credentials {
     throw new EnvironmentError(
       "FB_APPSTATE",
       `FB_APPSTATE is missing required cookies: ${missing.join(", ")}. Re-export the AppState from a logged-in browser session.`,
+    );
+  }
+  // The library normalizes facebook.com domains itself, but a full browser
+  // export normally carries these additional cookies. Their absence is a
+  // common cause of a desktop page without `fb_dtsg` / `lsd`.
+  const recommended = ["sb", "fr", "presence"];
+  const missingRecommended = recommended.filter((name) => !names.has(name));
+  if (missingRecommended.length > 0) {
+    logger?.warn(
+      { missingCookies: missingRecommended, cookieCount: names.size },
+      "AppState lacks recommended browser cookies; re-export the complete jar from a desktop browser if login fails",
     );
   }
   return parsed as Credentials;
