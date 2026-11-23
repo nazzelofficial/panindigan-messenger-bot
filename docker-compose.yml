@@ -1,0 +1,99 @@
+name: panindigan
+
+# All connection strings point at service names on the internal network.
+# Passwords come from .env; no credential is stored in this file.
+x-app-environment: &app-environment
+  NODE_ENV: "production"
+  FB_APPSTATE: "${FB_APPSTATE:?set FB_APPSTATE in .env}"
+  POSTGRES_DATABASE_URL: "postgresql://panindigan:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/panindigan"
+  TURSO_DATABASE_URL: "${TURSO_DATABASE_URL:?set TURSO_DATABASE_URL in .env}"
+  TURSO_AUTH_TOKEN: "${TURSO_AUTH_TOKEN:?set TURSO_AUTH_TOKEN in .env}"
+  MONGODB_URI: "mongodb://panindigan:${MONGODB_PASSWORD:?set MONGODB_PASSWORD in .env}@mongodb:27017/panindigan?authSource=admin"
+  REDIS_URL: "redis://:${REDIS_PASSWORD:?set REDIS_PASSWORD in .env}@redis:6379/0"
+
+services:
+  app:
+    build:
+      context: .
+    image: panindigan-messenger-bot:0.1.0
+    env_file: .env
+    environment:
+      <<: *app-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data
+      - ./backups:/app/backups
+    restart: unless-stopped
+    init: true
+    networks:
+      - internal
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: panindigan
+      POSTGRES_USER: panindigan
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U panindigan -d panindigan"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - internal
+
+  mongodb:
+    image: mongo:8
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: panindigan
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD:?set MONGODB_PASSWORD in .env}
+    volumes:
+      - mongodb-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok === 1 || quit(1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    networks:
+      - internal
+
+  redis:
+    image: redis:7-alpine
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD in .env}
+    command: ["sh", "-c", 'exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"']
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", 'redis-cli -a "$$REDIS_PASSWORD" ping 2>/dev/null | grep -q PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - internal
+
+# Turso is a remote managed service (libsql://), so there is deliberately no
+# local SQLite/Turso container here.
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  mongodb-data:
+  redis-data:

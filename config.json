@@ -1,0 +1,321 @@
+{
+  "application": {
+    "name": "Panindigan Messenger Bot",
+    "environment": "production",
+    "timezone": "Asia/Manila",
+    "language": "en-PH",
+    "debugMode": false
+  },
+  "identity": {
+    "botName": "Panindigan Bot",
+    "commandPrefix": "!",
+    "updateGroupNickname": true,
+    "publisher": {
+      "name": "Panindigan Development Team",
+      "profileUrl": "",
+      "contactEmailEnv": "PANINDIGAN_CONTACT_EMAIL"
+    }
+  },
+  "messenger": {
+    "enabled": true,
+    "authentication": {
+      "method": "appState",
+      "appStateEnv": "FB_APPSTATE"
+    },
+    "connection": {
+      "reconnectAutomatically": true,
+      "requestTimeoutMs": 30000,
+      "maximumReconnectAttempts": 10,
+      "reconnectDelayMs": 5000
+    },
+    "behavior": {
+      "receiveOwnMessages": false,
+      "subscribeToEvents": true,
+      "markMessagesAsRead": false,
+      "sendDeliveryReceipts": false,
+      "publishTypingStatus": false,
+      "updateOnlinePresence": false
+    },
+    "eventLogging": {
+      "enabled": true,
+      "logMessages": true,
+      "logReplies": true,
+      "logReactions": true,
+      "logUnsentMessages": true,
+      "logThreadChanges": true,
+      "logReadReceipts": false,
+      "logTypingEvents": false,
+      "logPresenceChanges": false
+    },
+    "accountAccess": {
+      "ownerIds": ["100055456757551"],
+      "administratorIds": []
+    },
+    "userAgent": "Mozilla/5.0 (Linux; Android 12; M2102J20SG) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.18 Mobile Safari/537.36"
+  },
+  "commands": {
+    "enabled": true,
+    "prefixCommandsEnabled": true,
+    "aliasesEnabled": true,
+    "ignoreCase": true,
+    "ignoreBotMessages": true,
+    "ignoreOwnMessages": true,
+    "defaultCooldownMs": 1000,
+    "maximumConcurrentExecutions": 25,
+    "maximumInputLength": 2000
+  },
+  "databases": {
+    "postgresql": {
+      "enabled": true,
+      "connectionStringEnv": "POSTGRES_DATABASE_URL",
+      "pool": {
+        "minimumConnections": 1,
+        "maximumConnections": 10,
+        "idleTimeoutMs": 30000,
+        "connectionTimeoutMs": 10000
+      }
+    },
+    "turso": {
+      "enabled": true,
+      "databaseUrlEnv": "TURSO_DATABASE_URL",
+      "authenticationTokenEnv": "TURSO_AUTH_TOKEN",
+      "requestTimeoutMs": 10000,
+      "maximumRetries": 3,
+      "createBackups": true,
+      "verifyIntegrityOnStartup": true
+    },
+    "mongodb": {
+      "enabled": true,
+      "connectionStringEnv": "MONGODB_URI",
+      "databaseName": "panindigan",
+      "maximumPoolSize": 10
+    },
+    "redis": {
+      "enabled": true,
+      "connectionUrlEnv": "REDIS_URL",
+      "keyNamespace": "panindigan:",
+      "connectionTimeoutMs": 10000,
+      "maximumRequestRetries": 3
+    }
+  },
+  "webDashboard": {
+    "enabled": false,
+    "host": "127.0.0.1",
+    "port": 3001,
+    "sessionLifetimeMs": 86400000,
+    "sessionSecretEnv": "DASHBOARD_SESSION_SECRET"
+  },
+  "uptimeEndpoint": {
+    "enabled": false,
+    "host": "127.0.0.1",
+    "port": 3002,
+    "websocket": {
+      "enabled": false,
+      "path": "/uptime",
+      "accessTokenEnv": "UPTIME_SOCKET_TOKEN"
+    }
+  },
+  "scheduledRestart": {
+    "enabled": false,
+    "cronExpression": "",
+    "timezone": "Asia/Manila"
+  },
+  "healthMonitoring": {
+    "enabled": false,
+    "checkIntervalSeconds": 180,
+    "endpointUrlEnv": "UPTIME_TARGET_URL",
+    "requestTimeoutMs": 10000
+  },
+  "developmentWatcher": {
+    "enabled": false,
+    "reloadDelayMs": 500,
+    "excludedCommands": [],
+    "excludedEvents": []
+  },
+  "messengerRecovery": {
+    "mqttRecoveryEnabled": false,
+    "recoveryIntervalMs": 3600000,
+    "shutdownGracePeriodMs": 2000,
+    "notifyOnRecoveryFailure": true
+  },
+  "alerting": {
+    "enabled": false,
+    "email": {
+      "enabled": false,
+      "recipients": [],
+      "usernameEnv": "SMTP_USERNAME",
+      "passwordEnv": "SMTP_PASSWORD"
+    },
+    "telegram": {
+      "enabled": false,
+      "botTokenEnv": "TELEGRAM_BOT_TOKEN",
+      "chatIds": []
+    },
+    "discord": {
+      "enabled": false,
+      "webhookUrlEnv": "DISCORD_ALERT_WEBHOOK_URL"
+    }
+  },
+  "permissions": {
+    "userAllowlist": {
+      "enabled": false,
+      "userIds": []
+    },
+    "groupAllowlist": {
+      "enabled": false,
+      "groupIds": []
+    },
+    "requireBothListsWhenBothEnabled": true
+  },
+  "responseVisibility": {
+    "suppressUnknownCommand": false,
+    "suppressAdministratorOnlyNotice": false,
+    "suppressBlockedGroupNotice": false,
+    "suppressBlockedUserNotice": false,
+    "suppressMissingRoleNotice": false,
+    "suppressMissingRoleReplyNotice": false,
+    "suppressMissingRoleReactionNotice": false
+  },
+  "networkProxy": {
+    "enabled": false,
+    "urlEnv": "MESSENGER_PROXY_URL"
+  },
+  "rateLimiting": {
+    "enabled": true,
+    "backend": "redis",
+    "defaultCooldownMs": 1000,
+    "perUserCooldownMs": 1000,
+    "perGroupCooldownMs": 1000,
+    "antiSpam": {
+      "enabled": true,
+      "observationWindowMs": 10000,
+      "maximumMessages": 7,
+      "initialDelayMs": 500,
+      "maximumDelayMs": 5000
+    }
+  },
+  "economy": {
+    "enabled": true,
+    "currencyLabel": "coins",
+    "rewards": {
+      "daily": {
+        "enabled": true,
+        "amount": 250,
+        "cooldownHours": 24,
+        "streakBonusEnabled": true
+      },
+      "weekly": {
+        "enabled": true,
+        "amount": 1000,
+        "cooldownHours": 168
+      },
+      "monthly": {
+        "enabled": true,
+        "amount": 3000,
+        "resetPolicy": "calendarMonth"
+      }
+    },
+    "activities": {
+      "work": {
+        "enabled": true,
+        "minimumPayout": 20,
+        "maximumPayout": 100,
+        "cooldownMinutes": 30
+      },
+      "beg": {
+        "enabled": true,
+        "minimumPayout": 1,
+        "maximumPayout": 50,
+        "cooldownHours": 5
+      }
+    }
+  },
+  "artificialIntelligence": {
+    "enabled": true,
+    "defaultProvider": "",
+    "defaultModel": "",
+    "requestTimeoutMs": 60000,
+    "maximumConcurrentRequests": 5,
+    "recordUsage": true,
+    "coinPrices": {
+      "ask1": 2,
+      "ask2": 5,
+      "ask3": 10,
+      "ask4": 20,
+      "ask5": 35,
+      "ask6": 0
+    },
+    "maximumMessageLengths": {
+      "ask1": 2000,
+      "ask2": 4000,
+      "ask3": 6000,
+      "ask4": 8000,
+      "ask5": 12000,
+      "ask6": 20000
+    },
+    "requestQuotas": {
+      "ask1": { "maximumRequests": 20, "periodHours": 24 },
+      "ask2": { "maximumRequests": 15, "periodHours": 24 },
+      "ask3": { "maximumRequests": 10, "periodHours": 24 },
+      "ask4": { "maximumRequests": 8, "periodHours": 24 },
+      "ask5": { "maximumRequests": 5, "periodHours": 24 },
+      "ask6": { "maximumRequests": 0, "periodHours": 0 }
+    }
+  },
+  "maintenance": {
+    "enabled": true,
+    "defaultScope": "global",
+    "timezone": "Asia/Manila",
+    "blockRegularCommands": true,
+    "allowOwnerOverride": true,
+    "allowAdministratorOverride": false,
+    "keepStatusCommandsAvailable": true,
+    "keepHelpCommandsAvailable": true,
+    "notifyAllActiveGroups": true,
+    "sendAdvanceNotices": true,
+    "noticeLeadTimesMinutes": [60, 30, 10, 5],
+    "startAutomatically": true,
+    "finishAutomatically": true
+  },
+  "announcements": {
+    "enabled": true,
+    "broadcastToEligibleGroups": true,
+    "requireFinalConfirmation": true,
+    "obeyMessengerRateLimits": true
+  },
+  "taskScheduler": {
+    "enabled": true,
+    "timezone": "Asia/Manila",
+    "pollIntervalMs": 1000,
+    "maximumRetries": 5
+  },
+  "cache": {
+    "enabled": true,
+    "defaultLifetimeSeconds": 300,
+    "maximumEntries": 10000
+  },
+  "logging": {
+    "minimumLevel": "info",
+    "usePrettyOutput": false,
+    "redactSensitiveValues": true
+  },
+  "security": {
+    "validateIncomingEvents": true,
+    "deduplicateIncomingEvents": true,
+    "rejectOversizedCommandInput": true,
+    "maximumConcurrentCommands": 25
+  },
+  "modules": {
+    "moderation": true,
+    "automation": true,
+    "economy": true,
+    "leveling": true,
+    "utilities": true,
+    "entertainment": true,
+    "games": true,
+    "media": true,
+    "artificialIntelligence": true,
+    "maintenance": true,
+    "announcements": true
+  }
+}

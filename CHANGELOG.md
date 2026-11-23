@@ -1,0 +1,41 @@
+# Changelog
+
+All notable changes to this project are documented in this file.
+
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.1.0] - 2026-11-23
+
+Initial production implementation.
+
+### Added
+
+- Messenger bot service written in TypeScript 7 for Node 22+ (Node 26 recommended), built as ESM and running on `panindigan-automate@0.3.5`.
+- AppState-only authentication: `FB_APPSTATE` is parsed and checked for the `c_user`, `xs` and `datr` cookies, and the library session is persisted under `data/session`. There is no email/password login.
+- 280 commands across 11 categories — administration, moderation, information, utility, automation, entertainment, economy, leveling, games, media and AI — invoked with the `!` prefix and checked by a startup registry validator.
+- Four stores with distinct ownership boundaries: PostgreSQL for authoritative business data, managed Turso (remote libSQL only) for operational history and scheduler checkpoints, MongoDB for document archives, and Redis for cooldowns, locks, deduplication, caching and rate limits.
+- Economy with daily, weekly and monthly rewards, work and beg activities, daily streaks, a coin ledger and shop inventory.
+- AI commands `ask1` through `ask6` with graduated coin prices, message length limits and per-level quotas; `ask6` is free and carries no application-level request-count limit.
+- Global maintenance with scheduling, automatic start and finish, advance notices at 60/30/10/5 minutes, and exceptions for status/help commands and the owner.
+- Developer announcements with a required final confirmation before broadcast and per-group delivery tracking.
+- Redis-backed rate limiting with fail-closed cooldowns and progressive anti-spam delays.
+- Strict Zod configuration validation, environment-only secret resolution and Pino redaction of sensitive log fields.
+- Checksummed SQL migrations, JSON backup and restore scripts, a command verification script, and Docker and Docker Compose deployment files.
+
+### Changed
+
+- Applied migrations are treated as immutable: changes must be added as new migration files rather than edits to existing ones.
+- Automatic library self-updates are disabled and the Messenger client is limited to options that exist in `panindigan-automate@0.3.5`, so deployments use a pinned, deterministic version.
+- Configuration is loaded from a single `config.json` containing only settings and environment-variable names; all secret values are resolved from the environment before any client is constructed.
+
+### Fixed
+
+- Duplicate reward claims and duplicate AI charges are prevented with idempotency keys and unique constraints in PostgreSQL.
+- Startup rejects overlapping owner/administrator IDs and AI price or quota combinations that would break the `ask1`–`ask6` ordering.
+- A missing or inaccessible Turso database no longer falls back to an empty local SQLite file; startup fails instead of losing operational history.
+
+### Security
+
+- Secrets are never written to configuration files or logs; sensitive fields are redacted and database connection strings, AppState values and tokens are omitted from error output.
+- Owner and administrator role changes are recorded in the audit log with critical severity.
+- The Docker application image runs as the non-root `node` user, and Compose keeps all database services on an internal network with no ports published to the host.

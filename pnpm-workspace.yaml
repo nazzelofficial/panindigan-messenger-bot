@@ -1,0 +1,10 @@
+allowBuilds:
+  esbuild: true
+
+# TypeScript 7.0.2 ships no programmatic compiler API, so typescript-eslint
+# resolves the TypeScript 6 compatibility package (Microsoft's documented
+# side-by-side setup). The build itself still uses TypeScript 7 via the
+# @typescript/native alias.
+
+minimumReleaseAgeExclude:
+  - panindigan-automate@0.3.5

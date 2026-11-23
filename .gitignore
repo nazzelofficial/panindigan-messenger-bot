@@ -1,0 +1,33 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Credentials and session state — never commit
+.env
+.env.*
+!.env.example
+appstate.json
+appstate*.json
+panindigan-session/
+*.pem
+*.key
+
+# Runtime data (structure is tracked via .gitkeep, contents are not)
+data/*
+!data/.gitkeep
+backups/*
+!backups/.gitkeep
+logs/
+*.log
+
+# Editors and OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/settings.json
+
+# Misc
+.tmp/
