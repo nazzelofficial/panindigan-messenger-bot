@@ -1,13 +1,20 @@
 import { createCommand, type CommandContext, type CommandResult } from "../../types.js";
 import { formatDuration } from "../../../utils/time.js";
+import { getOnlineSince } from "../../../utils/online-since.js";
 
 export default createCommand(
   {
     name: "uptime",
-    description: "Show how long the process has been running.",
+    description: "Show how long the bot has been continuously online.",
     category: "administration",
-    async run(_context: CommandContext): Promise<CommandResult> {
-      return { text: "⏱️ Uptime: " + formatDuration(process.uptime() * 1000) };
+    async run(context: CommandContext): Promise<CommandResult> {
+      const since = await getOnlineSince(context.databases);
+      const online = Math.max(0, Date.now() - since);
+      return {
+        text:
+          "⏱️ Uptime: " + formatDuration(online) +
+          "\n🖥️ Process: " + formatDuration(process.uptime() * 1000),
+      };
     },
   },
   {

@@ -39,7 +39,9 @@ export class CooldownService {
   ): Promise<CooldownResult> {
     if (!this.config.rateLimiting.enabled) return { allowed: true, remainingMs: 0 };
     const keys = this.databases.redis?.keys;
-    if (!keys) return { allowed: false, remainingMs: this.config.commands.defaultCooldownMs };
+    if (!keys || !this.databases.cooldowns) {
+      return { allowed: false, remainingMs: this.config.commands.defaultCooldownMs };
+    }
     const checks: Array<{ key: string; ms: number }> = [
       {
         key: keys.cooldown("global", "all", "command"),
@@ -56,13 +58,34 @@ export class CooldownService {
       { key: keys.cooldown("command", command.name, "execution"), ms: command.cooldownMs },
       { key: keys.cooldown("user", userId, command.name), ms: command.cooldownMs },
     ];
+    // Atomic acquire of all keys. The old code did 5 pTTL reads THEN 5
+    // SET NX writes; concurrent commands (up to 25 in flight) could all pass
+    // the read phase before any lock existed, so nobody saw a cooldown. Using
+    // SET NX directly makes each key acquisition atomic; if any key is held,
+    // release the ones we just took and report the longest remaining wait.
+    const acquired: string[] = [];
     let longest = 0;
     for (const check of checks) {
-      const result = await this.check(check.key, check.ms);
-      if (!result.allowed) longest = Math.max(longest, result.remainingMs);
+      if (check.ms <= 0) continue;
+      const result = await this.acquire(check.key, check.ms);
+      if (result.allowed) {
+        acquired.push(check.key);
+      } else {
+        longest = Math.max(longest, result.remainingMs);
+      }
     }
-    if (longest > 0) return { allowed: false, remainingMs: longest };
-    for (const check of checks) await this.acquire(check.key, check.ms);
+    if (longest > 0) {
+      // Roll back the keys this call acquired — otherwise a denied command
+      // would still consume the cooldown and extend the wait for everyone.
+      for (const key of acquired) {
+        try {
+          await this.databases.cooldowns.release(key);
+        } catch {
+          // best-effort rollback
+        }
+      }
+      return { allowed: false, remainingMs: longest };
+    }
     return { allowed: true, remainingMs: 0 };
   }
 

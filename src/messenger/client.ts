@@ -99,7 +99,7 @@ export class MessengerGateway {
         );
       }
       const credentials = parseAndValidateAppState(raw, this.logger);
-      const client = new MessengerClient(buildClientOptions(this.config, this.secrets));
+      const client = new MessengerClient(buildClientOptions(this.config, this.secrets, this.databases, this.logger));
       this.wireClient(client);
       const result = await client.login(credentials);
       if (this.stopped) {

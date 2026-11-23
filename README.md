@@ -1,18 +1,19 @@
 # Panindigan Messenger Bot
 
-A long-running Messenger bot for group administration, moderation, economy, automation, AI assistance, maintenance windows and developer announcements. It runs as a TypeScript 7 / Node ESM service on top of `panindigan-automate` and keeps its business data in PostgreSQL, operational history in a managed Turso (libSQL) database, archives in MongoDB and transient state in Redis.
+A long-running Messenger bot for group administration, moderation, economy, automation, AI assistance, maintenance windows, and developer announcements. It runs as a TypeScript 7 / Node ESM service on top of `panindigan-automate`, keeping business data in PostgreSQL, operational history in a managed Turso (libSQL) database, archives in MongoDB, and transient state in Redis.
 
-**Status:** `0.1.0`, pre-1.0. The bot drives a personal Messenger account, not a Page or a Business API app. Personal-account automation violates Meta's expected use patterns in some cases and can lead to feature limits, checkpoints or account restrictions. Use a dedicated account, not a personal primary account. The underlying library (`panindigan-automate@0.3.5`) is also pre-1.0; pin the version and upgrade deliberately.
+**Status:** `0.1.2`, pre-1.0. The bot drives a personal Messenger account, not a Page or a Business API app. Automating a personal account can conflict with Meta's expected use patterns and may lead to feature limits, checkpoints, or account restrictions, so use a dedicated account rather than a personal primary one. The underlying library (`panindigan-automate@0.3.6`) is also pre-1.0; pin its version and upgrade deliberately.
 
 ## Requirements
 
-- **Node.js >= 22 LTS.** Node 26 is what the project is built and tested against (`@types/node` 26, TypeScript 7); use it in production if possible.
-- **pnpm >= 9.** The repository pins `pnpm@12.21.0` through the `packageManager` field. Node 26 images no longer ship `corepack`, so install pnpm globally if it is not already on your PATH.
+- **Node.js >= 22 LTS.** Node 26 is the version the project is built and tested against (`@types/node` 26, TypeScript 7); use it in production where possible.
+- **pnpm 12.** The repository pins `pnpm@12.21.0` through the `packageManager` field. Node 26 images no longer ship `corepack`, so install pnpm globally if it is not already on your PATH.
 - The build uses TypeScript **7.0.2** through the `@typescript/native` alias. ESLint resolves TypeScript **6.0.2** through the `typescript` alias, which is Microsoft's documented side-by-side setup for tools that still need the compiler API. Both versions are pinned in `package.json`.
 - **PostgreSQL 17** for authoritative relational data.
 - **A provisioned Turso database named `panindigan`**, accessed over a remote `libsql://` URL. A local SQLite file is not an acceptable substitute.
 - **MongoDB 8** for document archives.
 - **Redis 7** for cooldowns, locks, deduplication, cache and rate limits.
+- **Durable sessions:** the refreshed Messenger session is stored in Turso with a local file mirror, so a restart, redeploy, or power loss does not log the account out. Continuous uptime is measured from that durable store and reported by `!uptime` and `GET /uptime`.
 - Docker and Docker Compose are optional but supported; see [Docker deployment](#docker-deployment).
 
 ## Install
@@ -39,7 +40,7 @@ The operational scripts `pnpm migrate`, `pnpm backup` and `pnpm restore` call `l
 
 ## Authentication: AppState only
 
-There is **no email/password login**. The only supported authentication method is `messenger.authentication.method: "appState"`. `FB_APPSTATE` must contain the JSON cookie state of an already logged-in browser session, exactly as defined by `messenger.authentication.appStateEnv` in `config.json`.
+There is **no email/password login**. The only supported authentication method is `messenger.authentication.method: "appState"`. `FB_APPSTATE` must contain the JSON cookie state of an already logged-in browser session. The name of that environment variable is defined by `messenger.authentication.appStateEnv` in `config.json`.
 
 The loader accepts either an array of cookie objects (with `key` or `name` fields) or an object keyed by cookie name. It checks the cookie **names** only and requires:
 
@@ -47,9 +48,9 @@ The loader accepts either an array of cookie objects (with `key` or `name` field
 - `xs`
 - `datr`
 
-A full browser export also contains `sb`, `fr` and `presence`. They are not enforced, but the startup log warns when they are missing — export the complete jar from a desktop browser if login then fails. The library normalizes Facebook domains for you, so a leading dot on `domain` is not required. Keep `messenger.userAgent` as a **desktop** browser string: `login()` reads the desktop root page and scrapes `fb_dtsg`/`lsd` from its boot payload, which a mobile-shaped page may not contain.
+A full browser export also contains `sb`, `fr`, and `presence`. These are not enforced, but the startup log warns when they are absent. Export the complete cookie jar from a desktop browser if login fails. The library normalizes Facebook domains, so a leading dot on `domain` is unnecessary. Keep `messenger.userAgent` as a **desktop** browser string: `login()` reads the desktop root page and scrapes `fb_dtsg` and `lsd` from its boot payload, which a mobile-shaped page may not contain.
 
-If any are missing, startup fails and tells you which ones to re-export. Cookie values are never read into logs or error messages.
+If any required cookie is missing, the service stays online but cannot connect to Messenger until the AppState is corrected; the error names the cookies to re-export. Cookie values are never written to logs or error messages.
 
 To export: sign in to Messenger in a desktop browser, open developer tools, go to the cookies storage view for the Messenger site, and copy the cookies into a JSON array of `{ "key": "...", "value": "..." }` objects. Store that array as a single line in `.env`:
 
@@ -57,9 +58,9 @@ To export: sign in to Messenger in a desktop browser, open developer tools, go t
 FB_APPSTATE=[{"key":"c_user","value":"..."},{"key":"xs","value":"..."},{"key":"datr","value":"..."}]
 ```
 
-Keep it out of version control (`.gitignore` already excludes `.env` and `appstate*.json`). The library persists the session under `data/session` via its file storage adapter, so the session can survive a restart; when a session dies, re-export the AppState and restart. If you see a checkpoint or `session_dead` event, that refresh is required rather than optional.
+Keep it out of version control (`.gitignore` already excludes `.env` and `appstate*.json`). The library refreshes and persists the session cookie jar automatically. The bot stores a durable copy in the managed Turso database and mirrors it to the local `data/session` file, so a refreshed session survives process restarts, container redeploys, and power loss without a manual AppState re-export. The file is only a fallback when Turso is unavailable. If a checkpoint or `session_dead` event still occurs, re-export the AppState and update `FB_APPSTATE`.
 
-A rejected or expired AppState does **not** stop the service. The gateway logs the real error, reports Messenger as disconnected in `!status`, and retries in the background using `messenger.connection.reconnectDelayMs` (with backoff), then the longer `messengerRecovery.recoveryIntervalMs`. Each attempt re-reads `FB_APPSTATE`, so a corrected value is picked up without restarting the process. No message is ever sent while the connection is down.
+A rejected or expired AppState does **not** stop the service. The gateway logs the underlying error, reports Messenger as disconnected in `!status`, and retries in the background using `messenger.connection.reconnectDelayMs` (with backoff), followed by the longer `messengerRecovery.recoveryIntervalMs`. Each attempt re-reads `FB_APPSTATE`, so a corrected value is picked up without restarting the process. No message is sent while the connection is down.
 
 ## Environment
 
@@ -77,7 +78,7 @@ Copy `.env.example` to `.env` and fill in the values. With the shipped `config.j
 Optional groups:
 
 - Publisher/contact: `PANINDIGAN_CONTACT_EMAIL`.
-- Web services: `DASHBOARD_SESSION_SECRET` (dashboard, disabled), `UPTIME_SOCKET_TOKEN` (websocket, disabled), `UPTIME_TARGET_URL` (health monitoring, disabled). The plain HTTP uptime endpoint itself needs no secret.
+- Web services: `DASHBOARD_SESSION_SECRET` (dashboard, disabled), `UPTIME_SOCKET_TOKEN` (websocket, disabled), `UPTIME_TARGET_URL` (health monitoring, disabled). The HTTP uptime endpoint itself requires no secret.
 - Alerts (disabled by default): `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM`, `TELEGRAM_BOT_TOKEN`, `DISCORD_ALERT_WEBHOOK_URL`.
 - Proxy: `MESSENGER_PROXY_URL` (only read when `networkProxy.enabled` is true).
 - AI: `AI_PROVIDER_API_KEY`, `AI_PROVIDER_BASE_URL`, `AI_PROVIDER_DEFAULT_MODEL`, `AI_PROVIDER_FALLBACK_MODEL`. These are required when `artificialIntelligence.enabled` is true and `defaultProvider` is set.
@@ -230,7 +231,7 @@ pnpm verify:commands                      # check the command registry
 
 ## Hosting platforms that inject a port
 
-Some hosts (Render, Fly, Railway) expect the service to listen on the port in the `PORT` environment variable and scan for an open listener. The uptime endpoint is enabled in the shipped `config.json` and binds to `0.0.0.0`. When `PORT` is set, it overrides `uptimeEndpoint.port`; otherwise the configured port (`10000`) is used. The endpoints are `GET /health` and `GET /uptime`. Leave `uptimeEndpoint.websocket.enabled` false unless you also set `UPTIME_SOCKET_TOKEN`.
+Some hosts (Render, Fly, Railway) expect the service to listen on the port in the `PORT` environment variable and scan for an open listener. The uptime endpoint is enabled in the shipped `config.json` and binds to `0.0.0.0`. When `PORT` is set, it overrides `uptimeEndpoint.port`; otherwise the configured port (`10000`) is used. The endpoints are `GET /health` and `GET /uptime`. `GET /uptime` reports continuous online time measured from a durable first-seen timestamp in Turso, so it survives restarts and reflects true 24/7 availability rather than just process uptime. Leave `uptimeEndpoint.websocket.enabled` disabled unless you also set `UPTIME_SOCKET_TOKEN`.
 
 ## Docker deployment
 
@@ -243,7 +244,7 @@ docker compose logs -f app
 
 The Compose file runs PostgreSQL 17, MongoDB 8 and Redis 7 on a single internal bridge network. **No database ports are published to the host** and there is no local Turso/SQLite service — Turso stays remote. The `app` service waits for the database healthchecks, runs as the non-root `node` user, mounts `./data` (including the persisted Messenger session) and `./backups`, and restarts unless stopped. Use `docker compose exec` for psql, mongosh or redis-cli access.
 
-The image is multi-stage: dependencies are installed with `pnpm install --frozen-lockfile`, TypeScript is compiled to `dist/`, dev dependencies are pruned, and only `dist`, `config.json`, `database/`, `package.json` and production `node_modules` are copied into the runtime stage. No secrets are baked into the image. The healthcheck uses Node's built-in `fetch` against the uptime endpoint when `uptimeEndpoint.enabled` is true; with the shipped config it is disabled, so the healthcheck falls back to a process check. To inspect databases from the host, use `docker compose exec` rather than publishing ports.
+The image is multi-stage: dependencies are installed with `pnpm install --frozen-lockfile`, TypeScript is compiled to `dist/`, dev dependencies are pruned, and only `dist`, `config.json`, `database/`, `package.json` and production `node_modules` are copied into the runtime stage. No secrets are baked into the image. The healthcheck uses Node's built-in `fetch` against the uptime endpoint when `uptimeEndpoint.enabled` is true; with the shipped config it is enabled, so the healthcheck uses `GET /health`. To inspect databases from the host, use `docker compose exec` rather than publishing ports.
 
 ## Troubleshooting
 
@@ -263,4 +264,4 @@ The image is multi-stage: dependencies are installed with `pnpm install --frozen
 | `MongoDB initialization failed: ... SSL alert number 80`        | TLS handshake rejected by the MongoDB host, or a missing CA bundle/IP allowlist issue. | Check that `MONGODB_URI` is correct, that the deployment IP is allowed by the provider, and that the image includes `ca-certificates`.     |
 | `Redis initialization failed: ... TLS/connect error`            | `REDIS_URL` uses TLS and the host or certificate is rejected.                          | Verify `REDIS_URL`, the provider's TLS requirements and network access from the deployment.                                                |
 | `pg-connection-string` SSL mode warning                         | Connection string omits an explicit `sslmode`.                                         | Informational. Add `sslmode=verify-full` to `POSTGRES_DATABASE_URL` to silence it and keep strict verification.                            |
-| Container marked unhealthy                                      | Uptime endpoint disabled, or the process exited.                                       | With the default config the healthcheck is a process check; inspect `docker compose logs app` for the real failure.                        |
+| Container marked unhealthy                                      | `GET /health` did not respond in time, or the process exited.                          | Check that the uptime endpoint is reachable on the configured port and inspect `docker compose logs app` for the real failure.              |

@@ -15,7 +15,10 @@ const config = configSchema.parse(
   JSON.parse(readFileSync(resolve(process.cwd(), "config.json"), "utf8")),
 );
 
-function harness(active: boolean) {
+function harness(active: boolean, overrides: {
+  cooldownResult?: { allowed: boolean; remainingMs: number };
+  antiSpamResult?: { allowed: boolean; delayMs: number; count: number };
+} = {}) {
   const sent: string[] = [];
   const executed: string[] = [];
   const registry = new CommandRegistry();
@@ -48,11 +51,11 @@ function harness(active: boolean) {
       }),
     },
     cooldowns: {
-      checkCommand: async () => ({ allowed: true, remainingMs: 0 }),
+      checkCommand: async () => overrides.cooldownResult ?? ({ allowed: true, remainingMs: 0 }),
       check: async () => ({ allowed: true, remainingMs: 0 }),
       acquire: async () => ({ allowed: true, remainingMs: 0 }),
     },
-    antiSpam: { evaluate: async () => ({ allowed: true, delayMs: 0, count: 1 }) },
+    antiSpam: { evaluate: async () => overrides.antiSpamResult ?? ({ allowed: true, delayMs: 0, count: 1 }) },
     cache: {
       get: async () => undefined,
       set: async () => undefined,
@@ -128,5 +131,25 @@ describe("central command pipeline", () => {
     const { dispatcher, executed } = harness(false);
     await dispatcher.handle(event("!balance"));
     expect(executed).toContain("balance");
+  });
+
+  it("shows a visible cooldown message when a command is on cooldown", async () => {
+    const { dispatcher, sent, executed } = harness(false, {
+      cooldownResult: { allowed: false, remainingMs: 3000 },
+    });
+    const outcome = await dispatcher.handle(event("!balance"));
+    expect(outcome.success).toBe(false);
+    expect(executed).toHaveLength(0);
+    expect(sent.join(" ")).toContain("Please wait");
+  });
+
+  it("shows a visible slow-down message when anti-spam denies", async () => {
+    const { dispatcher, sent, executed } = harness(false, {
+      antiSpamResult: { allowed: false, delayMs: 2000, count: 9 },
+    });
+    const outcome = await dispatcher.handle(event("!balance"));
+    expect(outcome.success).toBe(false);
+    expect(executed).toHaveLength(0);
+    expect(sent.join(" ")).toContain("slow down");
   });
 });

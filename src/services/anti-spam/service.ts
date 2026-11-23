@@ -38,7 +38,10 @@ export class AntiSpamService {
       { userId, threadId, count: result.count, delayMs },
       "Anti-spam limit triggered",
     );
-    await new Promise((resolve) => setTimeout(resolve, delayMs));
-    return { allowed: true, delayMs, count: result.count };
+    // Return a DENIAL (not allowed:true) so the dispatcher can tell the user
+    // to slow down. Previously this slept and then returned allowed:true,
+    // making the dispatcher's `if (!spam.allowed)` branch dead code — rapid
+    // messages were throttled invisibly with no explanatory reply.
+    return { allowed: false, delayMs, count: result.count };
   }
 }

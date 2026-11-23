@@ -215,6 +215,13 @@ export class CommandDispatcher {
 
       const spam = await this.services.antiSpam.evaluate(event.senderId, event.threadId);
       if (!spam.allowed) {
+        // Tell the user they're being throttled instead of silently dropping
+        // the command — otherwise rapid sends look like the bot is ignoring
+        // them with no cooldown feedback.
+        await this.send(
+          event.threadId,
+          `Please slow down — too many messages. Try again in ${formatDuration(spam.delayMs)}.`,
+        );
         return {
           handled: true,
           command: command.name,

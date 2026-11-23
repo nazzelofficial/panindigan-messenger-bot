@@ -4,6 +4,24 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2026-11-23
+
+### Added
+
+- Durable Messenger sessions: the refreshed session cookie jar is stored in Turso with a local `data/session` file mirror, so restarts, redeploys, and power loss do not log the account out. A corrected `FB_APPSTATE` is still picked up automatically when Facebook rejects a session.
+- Continuous uptime: `!uptime` and `GET /uptime` now report time online from a durable first-seen timestamp in Turso, alongside the per-process uptime.
+
+### Changed
+
+- README grammar and accuracy pass: corrected stale version numbers and the uptime-endpoint status, reworded awkward sections, and documented durable sessions and uptime. No content was removed.
+
+## [0.1.1] - 2026-11-23
+
+### Fixed
+
+- Cooldown and anti-spam now produce a visible reply. Anti-spam previously slept and then returned `allowed: true`, making the dispatcher's denial branch unreachable; rapid messages were throttled silently. It now returns a denial with the delay, and the dispatcher replies "Please slow down …".
+- Command cooldown acquisition is now atomic (`SET NX` per key with rollback), so concurrent rapid commands can no longer all pass the check before a lock exists.
+
 ## [0.1.0] - 2026-11-23
 
 Initial production implementation.

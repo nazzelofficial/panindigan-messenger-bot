@@ -2,13 +2,27 @@ import path from "node:path";
 import type { ClientOptions, Credentials } from "panindigan-automate";
 import type { AppConfig, ResolvedSecrets } from "../config/index.js";
 import type { AppLogger } from "../logging/logger.js";
+import type { DatabaseBundle } from "../databases/index.js";
 import { EnvironmentError } from "../utils/env.js";
+import { DurableSessionStorage } from "./session-storage.js";
 
 /**
- * Maps application configuration onto only those ClientOptions that exist in
- * panindigan-automate@0.3.5. No legacy FCA option is passed through.
+ * Maps application configuration onto the ClientOptions of the installed
+ * panindigan-automate. No legacy FCA option is passed through.
  */
-export function buildClientOptions(config: AppConfig, secrets: ResolvedSecrets): ClientOptions {
+export function buildClientOptions(
+  config: AppConfig,
+  secrets: ResolvedSecrets,
+  databases?: DatabaseBundle,
+  logger?: AppLogger,
+): ClientOptions {
+  // When the database bundle is available, persist the refreshed session in
+  // Turso (durable) with the local file as a mirror/fallback. On ephemeral
+  // hosts the file is lost on restart, so the durable copy is what keeps the
+  // account logged in without a manual AppState re-export.
+  const sessionStorage = databases
+    ? new DurableSessionStorage(path.resolve(process.cwd(), "data", "session"), databases, logger)
+    : undefined;
   const options: ClientOptions = {
     httpTimeout: config.messenger.connection.requestTimeoutMs,
     httpRetries: config.databases.turso.maximumRetries,
@@ -19,7 +33,7 @@ export function buildClientOptions(config: AppConfig, secrets: ResolvedSecrets):
     userAgent: config.messenger.userAgent.trim() === "" ? undefined : config.messenger.userAgent,
     httpProxy: secrets.messengerProxyUrl,
     persistSession: true,
-    storageAdapter: "file",
+    storageAdapter: sessionStorage ?? "file",
     storageDirectory: path.resolve(process.cwd(), "data", "session"),
     logLevel: config.logging.minimumLevel,
     prettyPrint: config.logging.usePrettyOutput,
