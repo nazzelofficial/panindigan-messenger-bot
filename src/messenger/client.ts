@@ -10,6 +10,7 @@ import type { AppConfig, ResolvedSecrets } from "../config/index.js";
 import type { AppLogger } from "../logging/logger.js";
 import type { DatabaseBundle } from "../databases/index.js";
 import type { DatabaseHealth } from "../databases/types.js";
+import { readEnvironment } from "../utils/env.js";
 import { buildClientOptions, parseAndValidateAppState } from "./adapter.js";
 import { GroupRegistry } from "./group-registry.js";
 
@@ -23,6 +24,19 @@ export type IncomingEvent =
 
 export type IncomingHandler = (event: IncomingEvent) => Promise<void>;
 
+function describeFailure(error: unknown): string {
+  if (!(error instanceof Error)) return "unknown error";
+  return error.message
+    .replace(/[a-z][a-z0-9+.-]*:\/\/[^\s"'()]+/gi, "[REDACTED_URL]")
+    .replace(/Bearer\s+\S+/gi, "Bearer [REDACTED]")
+    .slice(0, 400);
+}
+
+/**
+ * Owns the Messenger session. Authentication failures do not terminate the
+ * application: the gateway keeps retrying in the background while the command
+ * registry, scheduler and web services remain available.
+ */
 export class MessengerGateway {
   private client: MessengerClient | undefined;
   private connected = false;
@@ -30,6 +44,9 @@ export class MessengerGateway {
   private readonly registry: GroupRegistry;
   private handler: IncomingHandler = async () => undefined;
   private recoveryCallback: (() => void) | undefined;
+  private retryTimer: NodeJS.Timeout | undefined;
+  private attempt = 0;
+  private stopped = false;
 
   public constructor(
     private readonly config: AppConfig,
@@ -60,16 +77,83 @@ export class MessengerGateway {
     this.recoveryCallback = callback;
   }
 
-  public async start(): Promise<void> {
+  /** Starts the connection loop without ever failing the overall startup. */
+  public start(): void {
     if (!this.config.messenger.enabled) {
       this.logger.warn("Messenger is disabled in configuration; no connection will be made");
       return;
     }
-    const credentials = parseAndValidateAppState(this.secrets.appState);
-    const options = buildClientOptions(this.config, this.secrets);
-    const client = new MessengerClient(options);
-    this.client = client;
+    void this.attemptLogin();
+  }
 
+  private async attemptLogin(): Promise<void> {
+    if (this.stopped) return;
+    this.attempt += 1;
+    try {
+      // Read the AppState again on every attempt so a corrected environment
+      // value is picked up without a process restart.
+      const raw = readEnvironment(this.config.messenger.authentication.appStateEnv);
+      if (!raw) {
+        throw new Error(
+          `Environment variable ${this.config.messenger.authentication.appStateEnv} is not set`,
+        );
+      }
+      const credentials = parseAndValidateAppState(raw);
+      const client = new MessengerClient(buildClientOptions(this.config, this.secrets));
+      this.wireClient(client);
+      const result = await client.login(credentials);
+      if (this.stopped) {
+        await client.logout().catch(() => undefined);
+        return;
+      }
+      this.client = client;
+      this.authenticatedUserId = result.userId;
+      this.connected = true;
+      this.attempt = 0;
+      await this.registry.hydrateFromDatabase();
+      await this.discoverGroups();
+      await this.databases.checkpoints?.setRecoveryValue(
+        "lastMessengerLogin",
+        new Date().toISOString(),
+      );
+      this.logger.info(
+        { restored: result.restored, userId: result.userId, attempt: this.attempt },
+        "Messenger authenticated with AppState",
+      );
+    } catch (error) {
+      this.connected = false;
+      this.client = undefined;
+      const detail = describeFailure(error);
+      this.logger.error(
+        { attempt: this.attempt, error: detail },
+        "Messenger authentication failed; the service stays online and will retry",
+      );
+      await this.databases.checkpoints?.setRecoveryValue(
+        "lastMessengerFailure",
+        new Date().toISOString(),
+      );
+      await this.alertRecoveryFailure(detail);
+      this.scheduleRetry();
+    }
+  }
+
+  private scheduleRetry(): void {
+    if (this.stopped || !this.config.messenger.connection.reconnectAutomatically) return;
+    if (this.retryTimer) clearTimeout(this.retryTimer);
+    const isLongRetry = this.attempt > this.config.messenger.connection.maximumReconnectAttempts;
+    const delayMs = isLongRetry
+      ? this.config.messengerRecovery.recoveryIntervalMs
+      : this.config.messenger.connection.reconnectDelayMs * Math.min(this.attempt, 6);
+    this.retryTimer = setTimeout(() => void this.attemptLogin(), delayMs);
+    this.logger.warn(
+      { attempt: this.attempt, nextRetryMs: delayMs },
+      isLongRetry
+        ? "Messenger retries moved to the long recovery interval; re-export FB_APPSTATE when possible"
+        : "Messenger login scheduled for retry",
+    );
+  }
+
+  private wireClient(client: MessengerClient): void {
     client.on("ready", (event) => {
       this.connected = true;
       this.authenticatedUserId = event.userId;
@@ -86,6 +170,7 @@ export class MessengerGateway {
         { attempts: event.attempts, reason: event.reason },
         "Messenger disconnected",
       );
+      this.scheduleRetry();
     });
     client.on("error", (event) => {
       this.logger.error({ code: event.error.code }, "Messenger background error");
@@ -96,6 +181,7 @@ export class MessengerGateway {
     client.on("logout", (event) => {
       this.connected = false;
       this.logger.warn({ reason: event.reason }, "Messenger session ended");
+      this.scheduleRetry();
     });
     client.on("session_dead", (event) => {
       this.connected = false;
@@ -106,6 +192,7 @@ export class MessengerGateway {
       if (this.config.messengerRecovery.mqttRecoveryEnabled) {
         this.recoveryCallback?.();
       }
+      this.scheduleRetry();
     });
     client.on("checkpoint", (event) => {
       this.logger.error(
@@ -202,7 +289,7 @@ export class MessengerGateway {
     }
     if (behavior.updateOnlinePresence) {
       this.logger.warn(
-        "updateOnlinePresence is enabled, but panindigan-automate@0.3.5 has no supported API for publishing bot presence",
+        "updateOnlinePresence is enabled, but panindigan-automate has no supported API for publishing bot presence",
       );
     }
     if (this.config.identity.updateGroupNickname) {
@@ -232,13 +319,6 @@ export class MessengerGateway {
         (event) => void client.markAsDelivered(event.messageId).catch(() => undefined),
       );
     }
-
-    const result = await client.login(credentials);
-    this.authenticatedUserId = result.userId;
-    this.connected = true;
-    await this.registry.hydrateFromDatabase();
-    await this.discoverGroups();
-    this.logger.info({ restored: result.restored }, "Messenger authenticated with AppState");
   }
 
   public async discoverGroups(): Promise<void> {
@@ -327,11 +407,19 @@ export class MessengerGateway {
   private async alertRecoveryFailure(reason: string): Promise<void> {
     this.logger.error({ reason }, "Messenger recovery failed; manual AppState refresh required");
     if (this.databases.checkpoints) {
-      await this.databases.checkpoints.setRecoveryValue("lastFailure", new Date().toISOString());
+      await this.databases.checkpoints.setRecoveryValue(
+        "lastMessengerFailure",
+        new Date().toISOString(),
+      );
     }
   }
 
   public async stop(): Promise<void> {
+    this.stopped = true;
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = undefined;
+    }
     if (!this.client) return;
     await this.client.logout().catch((error: unknown) => {
       this.logger.warn(
@@ -339,6 +427,7 @@ export class MessengerGateway {
         "Messenger logout error",
       );
     });
+    this.client = undefined;
     this.connected = false;
   }
 }

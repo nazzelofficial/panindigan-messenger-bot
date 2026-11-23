@@ -57,6 +57,8 @@ FB_APPSTATE=[{"key":"c_user","value":"..."},{"key":"xs","value":"..."},{"key":"d
 
 Keep it out of version control (`.gitignore` already excludes `.env` and `appstate*.json`). The library persists the session under `data/session` via its file storage adapter, so the session can survive a restart; when a session dies, re-export the AppState and restart. If you see a checkpoint or `session_dead` event, that refresh is required rather than optional.
 
+A rejected or expired AppState does **not** stop the service. The gateway logs the real error, reports Messenger as disconnected in `!status`, and retries in the background using `messenger.connection.reconnectDelayMs` (with backoff), then the longer `messengerRecovery.recoveryIntervalMs`. Each attempt re-reads `FB_APPSTATE`, so a corrected value is picked up without restarting the process. No message is ever sent while the connection is down.
+
 ## Environment
 
 Copy `.env.example` to `.env` and fill in the values. With the shipped `config.json`, all four databases are enabled, so these are required:
@@ -242,6 +244,7 @@ The image is multi-stage: dependencies are installed with `pnpm install --frozen
 | Symptom                                                         | Likely cause                                                                           | What to do                                                                                                                                 |
 | --------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `FB_APPSTATE is missing required cookies: c_user, xs, datr`     | Exported state lacks one of the required cookies.                                      | Re-export from a logged-in browser session and make sure all three cookies are present.                                                    |
+| `Could not read Facebook's session tokens from the home page`   | Cookies are stale, incomplete, or from another session.                                | Re-export AppState from a browser that is actively logged in and update `FB_APPSTATE`; the bot stays online and retries automatically.     |
 | `FB_APPSTATE must contain valid JSON AppState data`             | `.env` value is not valid JSON, or quotes were stripped.                               | Store it as one single-quoted `.env` value with escaped inner quotes; no trailing commas.                                                  |
 | `TURSO_DATABASE_URL must be a remote libsql:// or https:// URL` | Local file or in-memory URL was supplied.                                              | Provision the managed `panindigan` database and use its remote URL plus auth token.                                                        |
 | `Migration <file> changed after it was applied`                 | An already-applied SQL file was edited.                                                | Restore the original file from history and add a new numbered migration instead.                                                           |

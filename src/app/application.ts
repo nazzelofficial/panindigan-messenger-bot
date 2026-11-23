@@ -66,7 +66,7 @@ export class Application {
       });
     }
 
-    await this.messenger.start();
+    this.messenger.start();
 
     this.registerScheduledJobs();
     if (config.taskScheduler.enabled) this.services.scheduler.start();
