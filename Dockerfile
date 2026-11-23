@@ -8,7 +8,8 @@ FROM node:26-alpine AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@12.21.0 --activate
+# Node 26 official images no longer bundle corepack, so install pnpm with npm.
+RUN npm install -g pnpm@12.21.0
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile

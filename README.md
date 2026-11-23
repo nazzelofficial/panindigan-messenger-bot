@@ -7,7 +7,7 @@ A long-running Messenger bot for group administration, moderation, economy, auto
 ## Requirements
 
 - **Node.js >= 22 LTS.** Node 26 is what the project is built and tested against (`@types/node` 26, TypeScript 7); use it in production if possible.
-- **pnpm >= 9.** The repository pins `pnpm@12.21.0` through the `packageManager` field, so `corepack` will select it automatically.
+- **pnpm >= 9.** The repository pins `pnpm@12.21.0` through the `packageManager` field. Node 26 images no longer ship `corepack`, so install pnpm globally if it is not already on your PATH.
 - The build uses TypeScript **7.0.2** through the `@typescript/native` alias. ESLint resolves TypeScript **6.0.2** through the `typescript` alias, which is Microsoft's documented side-by-side setup for tools that still need the compiler API. Both versions are pinned in `package.json`.
 - **PostgreSQL 17** for authoritative relational data.
 - **A provisioned Turso database named `panindigan`**, accessed over a remote `libsql://` URL. A local SQLite file is not an acceptable substitute.
@@ -18,7 +18,7 @@ A long-running Messenger bot for group administration, moderation, economy, auto
 ## Install
 
 ```sh
-corepack enable
+pnpm --version || npm install -g pnpm@12.21.0
 pnpm install --frozen-lockfile
 cp .env.example .env
 # fill in .env — see below
