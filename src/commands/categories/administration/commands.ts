@@ -26,15 +26,23 @@ export default createCommand(
             "media",
             "ai",
           ];
-      const lines = ["📋 COMMAND INDEX"];
+      const lines = ["📋 COMMAND INDEX", "", "Prefix: " + context.config.identity.commandPrefix];
       for (const category of categories) {
         const commands = registry.byCategory(category as Parameters<typeof registry.byCategory>[0]);
+        if (commands.length === 0) continue;
         lines.push(
-          "",
-          "[" + category.toUpperCase() + "] " + commands.length,
-          commands.map((c: { name: string }) => c.name).join(", "),
+          filter
+            ? "[" +
+                category.toUpperCase() +
+                "] " +
+                commands.length +
+                "\n" +
+                commands.map((c: { name: string }) => c.name).join(", ")
+            : "• " + category + " — " + commands.length,
         );
       }
+      if (!filter)
+        lines.push("", "Use !commands <category> for names, or !help <category> for descriptions.");
       return { text: lines.join("\n") };
     },
   },

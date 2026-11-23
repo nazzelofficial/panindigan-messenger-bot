@@ -11,6 +11,7 @@ import { LevelingService } from "./leveling/service.js";
 import { AutomationService } from "./automation/service.js";
 import { ModerationService } from "./moderation/service.js";
 import { MemoryCache } from "./cache/memory.js";
+import { OutboxService } from "./outbox/service.js";
 import type { RedisCache } from "../databases/redis/cache.js";
 import type { UserRepository } from "../databases/postgresql/repositories/core.js";
 import { AiService } from "./ai/service.js";
@@ -26,6 +27,7 @@ export class Services {
   public readonly cooldowns: CooldownService;
   public readonly antiSpam: AntiSpamService;
   public readonly alerts: AlertService;
+  public readonly outbox: OutboxService;
   public readonly economy: EconomyService;
   public readonly leveling: LevelingService;
   public readonly automation: AutomationService;
@@ -49,6 +51,7 @@ export class Services {
     this.cooldowns = new CooldownService(config, databases);
     this.antiSpam = new AntiSpamService(config, databases, logger);
     this.alerts = new AlertService(config, secrets, logger);
+    this.outbox = new OutboxService(config, databases, messenger, logger);
     this.economy = new EconomyService(config, databases, this.cooldowns, logger);
     this.leveling = new LevelingService(databases.leveling, databases.users);
     this.automation = new AutomationService(databases.automation);

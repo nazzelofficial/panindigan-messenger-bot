@@ -58,6 +58,12 @@ function harness(active: boolean) {
       set: async () => undefined,
       delete: async () => undefined,
     },
+    outbox: {
+      sendChunked: async (_thread: string, text: string) => {
+        sent.push(text);
+        return 1;
+      },
+    },
   } as unknown as Services;
   const messenger = {
     sendText: async (_thread: string, text: string) => {

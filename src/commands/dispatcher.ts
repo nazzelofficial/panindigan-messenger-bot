@@ -7,7 +7,6 @@ import { parseCommandBody } from "./parser.js";
 import type { CommandContext, CommandResult, PermissionLevel } from "./types.js";
 import { CommandRegistry } from "./registry.js";
 import { formatDuration } from "../utils/time.js";
-import { splitMessage } from "../utils/text.js";
 
 export interface DispatchOutcome {
   handled: boolean;
@@ -310,7 +309,7 @@ export class CommandDispatcher {
 
   private async send(threadId: string, text: string): Promise<void> {
     try {
-      for (const chunk of splitMessage(text, 1900)) await this.messenger.sendText(threadId, chunk);
+      await this.services.outbox.sendChunked(threadId, text);
     } catch (error) {
       this.logger.warn({ error: this.errorMessage(error) }, "Failed to send command response");
     }

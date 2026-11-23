@@ -32,6 +32,17 @@ export default createCommand(
           requested as Parameters<typeof registry.byCategory>[0],
         );
         if (byCategory.length > 0) {
+          const pageSize = 12;
+          const rawPage = Number.parseInt(context.args.positional[1] ?? "1", 10);
+          const totalPages = Math.max(1, Math.ceil(byCategory.length / pageSize));
+          const page = Number.isFinite(rawPage) && rawPage > 0 ? Math.min(rawPage, totalPages) : 1;
+          const slice = byCategory.slice((page - 1) * pageSize, page * pageSize);
+          const lines = slice.map((c: { name: string; description: string }) => {
+            const short =
+              c.description.length > 52 ? c.description.slice(0, 51) + "…" : c.description;
+            return "• " + c.name + " — " + short;
+          });
+          lines.push("", `Page ${page}/${totalPages} · next: !help ${requested} ${page + 1}`);
           return {
             text:
               "📖 " +
@@ -39,12 +50,7 @@ export default createCommand(
               " (" +
               byCategory.length +
               ")\n\n" +
-              byCategory
-                .map(
-                  (c: { name: string; description: string }) =>
-                    "• " + c.name + " — " + c.description,
-                )
-                .join("\n"),
+              lines.join("\n"),
           };
         }
         return { text: 'No command or category named "' + requested + '".' };
