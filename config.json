@@ -106,9 +106,9 @@
     "sessionSecretEnv": "DASHBOARD_SESSION_SECRET"
   },
   "uptimeEndpoint": {
-    "enabled": false,
-    "host": "127.0.0.1",
-    "port": 3002,
+    "enabled": true,
+    "host": "0.0.0.0",
+    "port": 10000,
     "websocket": {
       "enabled": false,
       "path": "/uptime",

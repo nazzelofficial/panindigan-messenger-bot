@@ -77,7 +77,7 @@ Copy `.env.example` to `.env` and fill in the values. With the shipped `config.j
 Optional groups:
 
 - Publisher/contact: `PANINDIGAN_CONTACT_EMAIL`.
-- Web services (disabled in the shipped config): `DASHBOARD_SESSION_SECRET`, `UPTIME_SOCKET_TOKEN`, `UPTIME_TARGET_URL`.
+- Web services: `DASHBOARD_SESSION_SECRET` (dashboard, disabled), `UPTIME_SOCKET_TOKEN` (websocket, disabled), `UPTIME_TARGET_URL` (health monitoring, disabled). The plain HTTP uptime endpoint itself needs no secret.
 - Alerts (disabled by default): `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM`, `TELEGRAM_BOT_TOKEN`, `DISCORD_ALERT_WEBHOOK_URL`.
 - Proxy: `MESSENGER_PROXY_URL` (only read when `networkProxy.enabled` is true).
 - AI: `AI_PROVIDER_API_KEY`, `AI_PROVIDER_BASE_URL`, `AI_PROVIDER_DEFAULT_MODEL`, `AI_PROVIDER_FALLBACK_MODEL`. These are required when `artificialIntelligence.enabled` is true and `defaultProvider` is set.
@@ -105,7 +105,7 @@ Sections you will normally touch:
 | `taskScheduler`                                                                                                                                                                | `enabled`, `timezone`, `pollIntervalMs`, `maximumRetries`                                                                                     |
 | `modules`                                                                                                                                                                      | On/off toggles for the 11 command categories                                                                                                  |
 | `logging` / `security`                                                                                                                                                         | Log level, `redactSensitiveValues`, event validation and deduplication, input limits                                                          |
-| `webDashboard`, `uptimeEndpoint`, `healthMonitoring`, `scheduledRestart`, `alerting`, `networkProxy`, `cache`, `developmentWatcher`, `messengerRecovery`, `responseVisibility` | Optional features, all disabled in the shipped config except `cache`                                                                          |
+| `webDashboard`, `uptimeEndpoint`, `healthMonitoring`, `scheduledRestart`, `alerting`, `networkProxy`, `cache`, `developmentWatcher`, `messengerRecovery`, `responseVisibility` | Optional features; `uptimeEndpoint` and `cache` are enabled, the rest are disabled                                                            |
 
 A few validation rules are worth knowing before you edit it: `commands.defaultCooldownMs` must equal `rateLimiting.defaultCooldownMs`; maintenance notice lead times must be unique and in descending order; AI coin prices must increase from `ask1` through `ask5` and `ask6` must stay free with no request-count quota; an account cannot appear in both `ownerIds` and `administratorIds`; enabling the maintenance or announcements module requires its feature section to be enabled as well.
 
@@ -227,6 +227,10 @@ pnpm verify:commands                      # check the command registry
 `pnpm backup` writes a timestamped directory under `backups/` containing `metadata.json`, `postgresql.json` (from `PostgresMigrator.exportSnapshot()`), `turso.json` (every table dumped via `sqlite_master`) and `mongodb.json` (every collection via `find({}).toArray()`). Redis is deliberately excluded because its contents are temporary.
 
 `pnpm restore` reads one of those directories and upserts rows using parameterized SQL keyed by each table's primary key, then upserts MongoDB documents by `_id`. It requires `--confirm` and will refuse to run without it. Stop the bot before restoring so nothing writes concurrently, and make sure migrations have been applied so the target schema exists.
+
+## Hosting platforms that inject a port
+
+Some hosts (Render, Fly, Railway) expect the service to listen on the port in the `PORT` environment variable and scan for an open listener. The uptime endpoint is enabled in the shipped `config.json` and binds to `0.0.0.0`. When `PORT` is set, it overrides `uptimeEndpoint.port`; otherwise the configured port (`10000`) is used. The endpoints are `GET /health` and `GET /uptime`. Leave `uptimeEndpoint.websocket.enabled` false unless you also set `UPTIME_SOCKET_TOKEN`.
 
 ## Docker deployment
 

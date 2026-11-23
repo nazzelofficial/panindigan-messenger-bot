@@ -48,7 +48,7 @@ USER node
 # Node built-in fetch. The shipped config disables it, so the fallback is a
 # simple check that PID 1 (the node process) is still alive.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
-  CMD ["node", "--input-type=commonjs", "-e", "const c=require('/app/config.json');const u=c.uptimeEndpoint;if(u&&u.enabled){fetch('http://127.0.0.1:'+u.port+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))}else{try{process.kill(1,0);process.exit(0)}catch{process.exit(1)}}"]
+  CMD ["node", "--input-type=commonjs", "-e", "const c=require('/app/config.json');const u=c.uptimeEndpoint;const p=Number(process.env.PORT)||u.port;if(u&&u.enabled){fetch('http://127.0.0.1:'+p+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))}else{try{process.kill(1,0);process.exit(0)}catch{process.exit(1)}}"]
 
 EXPOSE 3001 3002
 

@@ -7,9 +7,20 @@ import type { Services } from "../services/container.js";
 import type { MessengerGateway } from "../messenger/client.js";
 import type { DatabaseManager } from "../databases/index.js";
 import { hmacSha256, safeEqual } from "../utils/crypto.js";
+import { readEnvironment } from "../utils/env.js";
 
 export interface OptionalServers {
   stop(): Promise<void>;
+}
+
+/** Platform-hosted services (Render, Fly, Railway) inject the bind port via PORT. */
+export function resolveUptimePort(config: AppConfig): number {
+  const injected = readEnvironment("PORT");
+  if (injected === undefined) return config.uptimeEndpoint.port;
+  const parsed = Number(injected);
+  return Number.isInteger(parsed) && parsed > 0 && parsed <= 65535
+    ? parsed
+    : config.uptimeEndpoint.port;
 }
 
 export async function startOptionalServers(
@@ -80,7 +91,8 @@ export async function startOptionalServers(
         state: entry.state,
       })),
     }));
-    await app.listen({ host: config.uptimeEndpoint.host, port: config.uptimeEndpoint.port });
+    const uptimePort = resolveUptimePort(config);
+    await app.listen({ host: config.uptimeEndpoint.host, port: uptimePort });
     instances.push(app);
     if (config.uptimeEndpoint.websocket.enabled) {
       const server = WebSocketServer as unknown as new (options: {
@@ -118,9 +130,9 @@ export async function startOptionalServers(
         socket.on("close", () => clearInterval(timer));
       });
       sockets.push(wss);
-      logger.info({ port: config.uptimeEndpoint.port }, "Uptime websocket started");
+      logger.info({ port: uptimePort }, "Uptime websocket started");
     }
-    logger.info({ port: config.uptimeEndpoint.port }, "Uptime endpoint started");
+    logger.info({ host: config.uptimeEndpoint.host, port: uptimePort }, "Uptime endpoint started");
   }
 
   return {
