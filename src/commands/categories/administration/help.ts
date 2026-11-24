@@ -1,5 +1,19 @@
 import { createCommand, type CommandContext, type CommandResult } from "../../types.js";
-import { panel, bullet } from "../../../utils/response.js";
+import { panel, listItem } from "../../../utils/response.js";
+
+const CATEGORY_EMOJI: Record<string, string> = {
+  administration: "🛡️",
+  moderation: "🔨",
+  information: "ℹ️",
+  utility: "🧰",
+  automation: "⚙️",
+  entertainment: "🎮",
+  economy: "💰",
+  leveling: "📈",
+  games: "🎲",
+  media: "🖼️",
+  ai: "🤖",
+};
 
 export default createCommand(
   {
@@ -66,15 +80,18 @@ export default createCommand(
         "ai",
       ] as const;
       const body = categories.map((category) =>
-        bullet(category, `${registry.byCategory(category as Parameters<typeof registry.byCategory>[0]).length} cmds`)
+        listItem(
+          CATEGORY_EMOJI[category] ?? "▸",
+          `${category} (${registry.byCategory(category as Parameters<typeof registry.byCategory>[0]).length})`
+        )
       );
       return {
         text: panel({
           title: "PANINDIGAN COMMANDS",
           tone: "info",
-          subtitle: `Prefix: ${context.config.identity.commandPrefix}   ·   ${registry.size} commands / 11 categories`,
+          subtitle: `Prefix: ${context.config.identity.commandPrefix}  ·  ${registry.size} commands in ${categories.length} categories`,
           lines: body,
-          footer: "!help <category> · !help <command> for details",
+          footer: "!help <category> or !help <command> for details",
         }),
       };
     },

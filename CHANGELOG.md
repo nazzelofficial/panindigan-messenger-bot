@@ -8,11 +8,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
-- Shared response formatter for Messenger replies: clean boxed panels with aligned rows, tone icons, auto-sizing borders, and Unicode bullets. Applied to `!help` (main menu, category lists, and command details), replacing the plain bullet-and-header output.
+- Shared response formatter for Messenger replies: clean cards with tone icons, single-rule dividers, and per-category emoji. Applied to `!help` (main menu, category lists, and command details), replacing the plain bullet-and-header output.
 
 ### Fixed
 
-- Panel borders now auto-size to the longest line and truncate anything beyond a safe max width, so long subtitles or footers never spill past the box.
+- Replaced double-line box-drawing characters (╔ ═ ║ ╠ ╚) that Messenger's font rendered as broken, scattered fragments. Cards now use only Messenger-safe characters (emoji, `─` rule, `▸` bullets) and no space-padded columns, so the layout is stable on any device. The 0.1.4 boxed-panel design is superseded by this safer layout.
 
 ## [0.1.3] - 2026-11-24
 
