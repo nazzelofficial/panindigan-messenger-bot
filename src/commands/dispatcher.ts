@@ -104,7 +104,10 @@ export class CommandDispatcher {
       if (!this.config.responseVisibility.suppressUnknownCommand) {
         await this.send(
           event.threadId,
-          `Unknown command. Use ${this.config.identity.commandPrefix}help to see available commands.`,
+          this.unique(
+            `Unknown command. Use ${this.config.identity.commandPrefix}help to see available commands.`,
+            event.messageId,
+          ),
         );
       }
       return { handled: false, success: true, durationMs: Date.now() - started };
@@ -203,7 +206,10 @@ export class CommandDispatcher {
       if (!cooldown.allowed) {
         await this.send(
           event.threadId,
-          `Please wait ${formatDuration(cooldown.remainingMs)} before using that command again.`,
+          this.unique(
+            `Please wait ${formatDuration(cooldown.remainingMs)} before using that command again.`,
+            event.messageId,
+          ),
         );
         return {
           handled: true,
@@ -220,7 +226,10 @@ export class CommandDispatcher {
         // them with no cooldown feedback.
         await this.send(
           event.threadId,
-          `Please slow down — too many messages. Try again in ${formatDuration(spam.delayMs)}.`,
+          this.unique(
+            `Please slow down — too many messages. Try again in ${formatDuration(spam.delayMs)}.`,
+            event.messageId,
+          ),
         );
         return {
           handled: true,
@@ -288,7 +297,7 @@ export class CommandDispatcher {
       visibility.suppressBlockedUserNotice
     )
       return;
-    await context.reply(message);
+    await context.reply(this.unique(message, context.messageId));
   }
 
   private permissionNotice(level: PermissionLevel): string {
@@ -308,10 +317,26 @@ export class CommandDispatcher {
     if (!acquired.allowed) return;
     await this.services.cooldowns.acquire(key, 30_000);
     await context.reply(
-      `🛠️ MAINTENANCE IN PROGRESS\n\n${title || "System maintenance"} is underway, so regular commands are temporarily unavailable.\n${
-        endsAt ? `Expected completion: ${new Date(endsAt).toISOString()}` : ""
-      }\n\nStatus remains available with ${this.config.identity.commandPrefix}status.`,
+      this.unique(
+        `🛠️ MAINTENANCE IN PROGRESS\n\n${title || "System maintenance"} is underway, so regular commands are temporarily unavailable.\n${
+          endsAt ? `Expected completion: ${new Date(endsAt).toISOString()}` : ""
+        }\n\nStatus remains available with ${this.config.identity.commandPrefix}status.`,
+        context.messageId,
+      ),
     );
+  }
+
+  /**
+   * Marks a short notice as unique so the library's send idempotency (keyed
+   * on thread + exact text, 24h TTL) does not silently dedupe repeated
+   * notices. A zero-width reference is invisible to the user but changes the
+   * hash on every incoming message, so cooldown / slow-down / unknown-command
+   * replies actually reach Facebook instead of vanishing as "idempotent
+   * retries". Without this, every identical denial after the first was
+   * dropped at the last hop and the bot appeared to ignore rapid commands.
+   */
+  private unique(text: string, messageId: string): string {
+    return `${text}\u200B\u200C${messageId}`;
   }
 
   private async send(threadId: string, text: string): Promise<void> {

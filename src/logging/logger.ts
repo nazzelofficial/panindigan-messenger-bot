@@ -1,5 +1,6 @@
 import pino, { type Logger } from "pino";
 import type { AppConfig } from "../config/index.js";
+import { createColorizedDestination } from "./colorized-destination.js";
 
 export type AppLogger = Logger;
 
@@ -32,6 +33,16 @@ const SENSITIVE_PATHS = [
 ];
 
 export function createLogger(config: AppConfig): AppLogger {
+  // Always colorized, never raw JSON. Pino applies redaction BEFORE writing
+  // the line, so the destination only sees already-sanitized records. The
+  // destination stream colorizes every line — no pino-pretty needed, no TTY
+  // requirement, identical on local shells and hosted log viewers.
+  const destination = config.logging.usePrettyOutput
+    ? pino.transport({
+        target: "pino-pretty",
+        options: { colorize: true, translateTime: "SYS:standard" },
+      })
+    : createColorizedDestination();
   return pino(
     {
       level: config.logging.minimumLevel,
@@ -39,25 +50,17 @@ export function createLogger(config: AppConfig): AppLogger {
         ? { paths: SENSITIVE_PATHS, censor: "[REDACTED]" }
         : undefined,
       base: {
-        service: "panindigan-messenger-bot",
+        library: "panindigan-messenger-bot",
         environment: config.application.environment,
       },
       timestamp: pino.stdTimeFunctions.isoTime,
-      formatters: {
-        level(label: string) {
-          return { level: label };
-        },
-      },
+      // Keep numeric pino levels so the badge/icon mapping works.
     },
-    config.logging.usePrettyOutput
-      ? pino.transport({
-          target: "pino-pretty",
-          options: { colorize: true, translateTime: "SYS:standard" },
-        })
-      : undefined,
+    destination,
   );
 }
 
 export function childLogger(parent: AppLogger, component: string): AppLogger {
-  return parent.child({ component });
+  // Bind `module` so the colorizer shows [MODULE] in the output line.
+  return parent.child({ module: component });
 }

@@ -152,4 +152,21 @@ describe("central command pipeline", () => {
     expect(executed).toHaveLength(0);
     expect(sent.join(" ")).toContain("slow down");
   });
+
+  it("makes repeated denial replies unique so the library does not dedupe them", async () => {
+    // The library's send idempotency hashes (thread + exact text) with a 24h
+    // TTL. Identical cooldown text after the first send is silently dropped.
+    // Each denial must therefore carry a unique suffix tied to the message id.
+    const first = harness(false, { cooldownResult: { allowed: false, remainingMs: 3000 } });
+    await first.dispatcher.handle({ ...event("!balance"), event: { ...event("!balance").event, messageId: "msg-A" } });
+    const second = harness(false, { cooldownResult: { allowed: false, remainingMs: 3000 } });
+    await second.dispatcher.handle({ ...event("!balance"), event: { ...event("!balance").event, messageId: "msg-B" } });
+
+    expect(first.sent).toHaveLength(1);
+    expect(second.sent).toHaveLength(1);
+    expect(first.sent[0]).not.toBe(second.sent[0]);
+    // The suffix is zero-width: invisible but hash-changing.
+    expect(first.sent[0]).toContain("msg-A");
+    expect(second.sent[0]).toContain("msg-B");
+  });
 });

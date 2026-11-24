@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2026-11-24
+
+### Fixed
+
+- Cooldown, slow-down, and other short notices now actually appear. The library's send idempotency hashes on thread + exact text with a 24-hour TTL, so identical denial text was deduped and silently dropped after the first send. Each notice now carries a zero-width reference tied to the incoming message, so the hash is unique and the reply reaches Messenger while remaining invisible to the user.
+- Outbound replies are serialized per thread (FIFO), so multi-part responses stay adjacent and in order instead of being buried by other sends. Split replies now carry `(1/3)`-style part markers, and a failed send no longer silently drops the remaining parts.
+- Console logs are now colorized and human-readable instead of raw JSON, with the bot's own visual identity — bracketed 24-hour timestamps with milliseconds, solid background level badges, a diamond brand mark, and corner-bracketed module names — deliberately distinct from the library's logger.
+
 ## [0.1.2] - 2026-11-23
 
 ### Added
