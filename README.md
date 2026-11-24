@@ -2,7 +2,7 @@
 
 A long-running Messenger bot for group administration, moderation, economy, automation, AI assistance, maintenance windows, and developer announcements. It runs as a TypeScript 7 / Node ESM service on top of `panindigan-automate`, keeping business data in PostgreSQL, operational history in a managed Turso (libSQL) database, archives in MongoDB, and transient state in Redis.
 
-**Status:** `0.1.3`, pre-1.0. The bot drives a personal Messenger account, not a Page or a Business API app. Automating a personal account can conflict with Meta's expected use patterns and may lead to feature limits, checkpoints, or account restrictions, so use a dedicated account rather than a personal primary one. The underlying library (`panindigan-automate@0.3.6`) is also pre-1.0; pin its version and upgrade deliberately.
+**Status:** `0.1.4`, pre-1.0. The bot drives a personal Messenger account, not a Page or a Business API app. Automating a personal account can conflict with Meta's expected use patterns and may lead to feature limits, checkpoints, or account restrictions, so use a dedicated account rather than a personal primary one. The underlying library (`panindigan-automate@0.3.6`) is also pre-1.0; pin its version and upgrade deliberately.
 
 ## Requirements
 

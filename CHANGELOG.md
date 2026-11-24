@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2026-11-24
+
+### Added
+
+- Shared response formatter for Messenger replies: clean boxed panels with aligned rows, tone icons, auto-sizing borders, and Unicode bullets. Applied to `!help` (main menu, category lists, and command details), replacing the plain bullet-and-header output.
+
+### Fixed
+
+- Panel borders now auto-size to the longest line and truncate anything beyond a safe max width, so long subtitles or footers never spill past the box.
+
 ## [0.1.3] - 2026-11-24
 
 ### Fixed
